@@ -15,7 +15,10 @@ test('countByRole counts accounts per role value', function () {
     User::factory()->owner()->create();
     User::factory()->cashier()->count(2)->create();
 
-    expect(User::countByRole())->toBe(['owner' => 1, 'cashier' => 2]);
+    $counts = User::countByRole();
+    ksort($counts);
+
+    expect($counts)->toBe(['cashier' => 2, 'owner' => 1]);
 });
 
 test('new accounts default to the cashier role and start active', function () {

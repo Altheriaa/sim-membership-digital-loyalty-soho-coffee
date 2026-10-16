@@ -36,7 +36,7 @@ test('staff index only lists accounts of the requested role', function () {
 
     $response->assertOk()
         ->assertSeeText('Budi Kasir')
-        ->assertDontSeeText('Admin Utama');
+        ->assertViewHas('staff', fn ($staff): bool => $staff->pluck('name')->all() === ['Budi Kasir']);
 });
 
 test('staff index matches the search term against names and emails', function () {

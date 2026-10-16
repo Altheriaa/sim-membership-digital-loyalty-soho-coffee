@@ -1,20 +1,24 @@
 @php
     $user = auth()->user();
     $isAdmin = $user->hasRole(\App\Role::Admin);
+    $isOwner = $user->hasRole(\App\Role::Owner);
 
     $groups = [
-        'Operasional' => [
-            ['route' => 'admin.menu-items.index', 'match' => 'admin.menu-items.*', 'label' => 'Menu', 'icon' => 'coffee'],
-            ['route' => 'admin.categories.index', 'match' => 'admin.categories.*', 'label' => 'Kategori', 'icon' => 'tag'],
-        ],
-        'Loyalitas' => [
-            ['route' => 'admin.loyalty.edit', 'match' => 'admin.loyalty.*', 'label' => 'Aturan poin', 'icon' => 'coins'],
-            ['route' => 'admin.tiers.index', 'match' => 'admin.tiers.*', 'label' => 'Tier', 'icon' => 'award'],
-            ['route' => 'admin.vouchers.index', 'match' => 'admin.vouchers.*', 'label' => 'Voucer', 'icon' => 'ticket'],
-        ],
-        'Akses' => [
-            ['route' => 'admin.staff.index', 'match' => 'admin.staff.*', 'label' => 'Staf', 'icon' => 'users'],
-        ],
+        'Operasional' => array_values(array_filter([
+            ['route' => 'pos.index', 'match' => 'pos.*', 'label' => 'Kasir (POS)', 'icon' => 'monitor', 'allowed' => $isAdmin],
+            ['route' => 'admin.reports.index', 'match' => 'admin.reports.*', 'label' => 'Laporan', 'icon' => 'bar-chart-3', 'allowed' => true],
+            ['route' => 'admin.menu-items.index', 'match' => 'admin.menu-items.*', 'label' => 'Menu', 'icon' => 'coffee', 'allowed' => $isAdmin],
+            ['route' => 'admin.categories.index', 'match' => 'admin.categories.*', 'label' => 'Kategori', 'icon' => 'tag', 'allowed' => $isAdmin],
+        ], fn ($item) => $item['allowed'])),
+        'Loyalitas' => array_values(array_filter([
+            ['route' => 'admin.members.index', 'match' => 'admin.members.*', 'label' => 'Member', 'icon' => 'user-check', 'allowed' => $isAdmin],
+            ['route' => 'admin.loyalty.edit', 'match' => 'admin.loyalty.*', 'label' => 'Aturan poin', 'icon' => 'coins', 'allowed' => $isAdmin],
+            ['route' => 'admin.tiers.index', 'match' => 'admin.tiers.*', 'label' => 'Tier', 'icon' => 'award', 'allowed' => $isAdmin],
+            ['route' => 'admin.vouchers.index', 'match' => 'admin.vouchers.*', 'label' => 'Voucer', 'icon' => 'ticket', 'allowed' => $isAdmin],
+        ], fn ($item) => $item['allowed'])),
+        'Akses' => array_values(array_filter([
+            ['route' => 'admin.staff.index', 'match' => 'admin.staff.*', 'label' => 'Staf', 'icon' => 'users', 'allowed' => $isAdmin],
+        ], fn ($item) => $item['allowed'])),
     ];
 @endphp
 
@@ -32,14 +36,14 @@
             <april:sidebar-menu>
                 <april:sidebar-menu-item>
                     <april:sidebar-menu-button-link href="{{ route('admin.dashboard') }}" :active="request()->routeIs('admin.dashboard')" class="h-11 gap-3 md:h-10">
-                        <x-icon name="home" />
+                        <x-lucide-home class="size-4 shrink-0" />
                         <span>Dashboard</span>
                     </april:sidebar-menu-button-link>
                 </april:sidebar-menu-item>
             </april:sidebar-menu>
 
-            @if ($isAdmin)
-                @foreach ($groups as $heading => $links)
+            @foreach ($groups as $heading => $links)
+                @if (count($links) > 0)
                     <april:sidebar-group>
                         <april:sidebar-group-label>{{ $heading }}</april:sidebar-group-label>
                         <april:sidebar-group-content>
@@ -47,7 +51,7 @@
                                 @foreach ($links as $link)
                                     <april:sidebar-menu-item>
                                         <april:sidebar-menu-button-link href="{{ route($link['route']) }}" :active="request()->routeIs($link['match'])" class="h-11 gap-3 md:h-10">
-                                            <x-icon :name="$link['icon']" />
+                                            <x-dynamic-component :component="'lucide-' . $link['icon']" class="size-4 shrink-0" />
                                             <span>{{ $link['label'] }}</span>
                                         </april:sidebar-menu-button-link>
                                     </april:sidebar-menu-item>
@@ -55,8 +59,8 @@
                             </april:sidebar-menu>
                         </april:sidebar-group-content>
                     </april:sidebar-group>
-                @endforeach
-            @endif
+                @endif
+            @endforeach
         </nav>
     </slot:content>
 
@@ -68,7 +72,7 @@
         <form method="POST" action="{{ route('logout') }}">
             @csrf
             <button type="submit" class="flex h-11 w-full items-center gap-3 rounded-md px-2 text-sm outline-none transition-colors hover:bg-sidebar-accent focus-visible:ring-2 focus-visible:ring-sidebar-ring md:h-10">
-                <x-icon name="logout" />
+                <x-lucide-log-out class="size-4 shrink-0" />
                 <span>Keluar</span>
             </button>
         </form>

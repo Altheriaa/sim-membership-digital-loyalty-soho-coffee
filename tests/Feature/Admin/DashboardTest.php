@@ -5,6 +5,7 @@ use App\Models\MenuItem;
 use App\Models\Tier;
 use App\Models\User;
 use App\Models\Voucher;
+use Illuminate\Support\Carbon;
 
 test('dashboard shows how many menu items can be sold right now', function () {
     signInAsAdmin();
@@ -36,7 +37,7 @@ test('dashboard summarises tiers, staff and the point rules', function () {
 });
 
 test('dashboard counts only vouchers that can be claimed today', function () {
-    travelTo('2026-10-15');
+    $this->travelTo(Carbon::parse('2026-10-15'));
     signInAsAdmin();
     Voucher::factory()->create();
     Voucher::factory()->inactive()->create();
@@ -103,6 +104,7 @@ test('the sidebar shows the signed-in name and role, and only admins get managem
         ->assertOk()
         ->assertSeeText('Admin Utama')
         ->assertSeeText('Aturan poin')
+        ->assertSee(e(route('admin.loyalty.edit')), false)
         ->assertSeeText('Keluar');
 
     auth()->logout();
@@ -111,5 +113,6 @@ test('the sidebar shows the signed-in name and role, and only admins get managem
     $this->get(route('admin.dashboard'))
         ->assertOk()
         ->assertSeeText('Pak Owner')
-        ->assertDontSeeText('Aturan poin');
+        ->assertDontSee(e(route('admin.loyalty.edit')), false)
+        ->assertDontSee(e(route('admin.staff.index')), false);
 });

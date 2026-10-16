@@ -27,7 +27,7 @@
                     <input type="hidden" name="role" value="{{ $activeRole->value }}">
                 @endif
                 <div class="relative min-w-0 flex-1">
-                    <x-icon name="search" class="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-muted-foreground" />
+                    <x-lucide-search class="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
                     <april:input type="search" name="search" value="{{ $search }}" maxlength="100" placeholder="Cari nama atau email" aria-label="Cari staf" class="h-11 pl-9 sm:h-10" />
                 </div>
                 <april:button type="submit" variant="outline" size="none" class="h-11 shrink-0 px-4 sm:h-10">Cari</april:button>

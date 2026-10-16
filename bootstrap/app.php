@@ -17,6 +17,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'role' => EnsureUserHasRole::class,
         ]);
 
+        $middleware->redirectGuestsTo(fn (Request $request) => $request->is('app*') ? route('customer.login') : route('login'));
         $middleware->redirectUsersTo(fn (Request $request) => route($request->user()->role->homeRoute()));
     })
     ->withExceptions(function (Exceptions $exceptions): void {

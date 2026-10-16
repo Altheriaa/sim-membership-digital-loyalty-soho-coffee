@@ -8,7 +8,7 @@
     <section aria-label="Daftar menu" class="overflow-hidden rounded-lg border border-border bg-card text-card-foreground">
         <form method="GET" action="{{ route('admin.menu-items.index') }}" role="search" class="flex flex-col gap-2 border-b border-border p-3 sm:flex-row sm:items-center">
             <div class="relative min-w-0 flex-1">
-                <x-icon name="search" class="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-muted-foreground" />
+                <x-lucide-search class="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
                 <april:input type="search" name="search" value="{{ $search }}" maxlength="100" placeholder="Cari nama menu" aria-label="Cari menu" class="h-11 pl-9 sm:h-10" />
             </div>
             <april:native-select name="category" aria-label="Filter kategori" class="h-11 sm:h-10 sm:w-52">
@@ -59,9 +59,9 @@
                             <td class="max-w-0 px-4 py-3 sm:px-6">
                                 <div class="flex min-w-0 items-center gap-3">
                                     @if ($item->image_url)
-                                        <img src="{{ $item->image_url }}" alt="" width="40" height="40" loading="lazy" class="hidden size-10 shrink-0 rounded-md border border-border object-cover sm:block">
+                                        <img src="{{ $item->image_url }}" alt="{{ $item->name }}" width="40" height="40" loading="lazy" class="size-10 shrink-0 rounded-md border border-border object-cover">
                                     @else
-                                        <span class="hidden size-10 shrink-0 items-center justify-center rounded-md border border-border bg-muted text-muted-foreground sm:flex" aria-hidden="true"><x-icon name="coffee" /></span>
+                                        <span class="flex size-10 shrink-0 items-center justify-center rounded-md border border-border bg-muted text-muted-foreground" aria-hidden="true"><x-lucide-coffee class="size-4" /></span>
                                     @endif
                                     <div class="min-w-0">
                                         <p class="truncate font-medium">{{ $item->name }}</p>

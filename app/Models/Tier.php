@@ -44,6 +44,22 @@ class Tier extends Model
     }
 
     /**
+     * The point multiplier times 100, so 1.25 becomes 125 and point math stays in whole numbers.
+     */
+    public function multiplierHundredths(): int
+    {
+        return (int) round((float) $this->multiplier * 100);
+    }
+
+    /**
+     * The multiplier as a person reads it in Indonesian: 1.25 becomes "1,25", 1.00 becomes "1".
+     */
+    public function multiplierLabel(): string
+    {
+        return str_replace('.', ',', rtrim(rtrim((string) $this->multiplier, '0'), '.'));
+    }
+
+    /**
      * The highest tier whose threshold the lifetime spend reaches.
      */
     public static function forSpend(int $lifetimeSpend): ?self

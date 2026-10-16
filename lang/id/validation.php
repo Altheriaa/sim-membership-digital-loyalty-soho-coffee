@@ -68,5 +68,12 @@ return [
         'spend_per_point' => 'Belanja per poin',
         'point_value' => 'Nilai satu poin',
         'tax_percent' => 'Pajak',
+        'phone' => 'Nomor WhatsApp',
+        'member_id' => 'Member',
+        'items' => 'Keranjang',
+        'items.*.id' => 'Menu',
+        'items.*.quantity' => 'Jumlah',
+        'payment_method' => 'Metode bayar',
+        'cash_received' => 'Uang diterima',
     ],
 ];

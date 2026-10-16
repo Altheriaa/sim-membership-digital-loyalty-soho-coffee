@@ -33,4 +33,30 @@ class LoyaltySetting extends Model
     {
         return static::query()->first() ?? static::query()->create(self::DEFAULTS);
     }
+
+    /**
+     * The tax rate in hundredths of a percent, so 11.5% becomes 1150 and the math stays in whole numbers.
+     */
+    public function taxBasisPoints(): int
+    {
+        return (int) round((float) $this->tax_percent * 100);
+    }
+
+    /**
+     * Tax on a subtotal, rounded half up to the nearest rupiah.
+     */
+    public function taxFor(int $subtotal): int
+    {
+        return intdiv($subtotal * $this->taxBasisPoints() + 5000, 10000);
+    }
+
+    /**
+     * Points a purchase earns: whole spend steps, multiplied by the tier bonus, rounded down.
+     *
+     * @param  int  $multiplierHundredths  The tier multiplier times 100, so 1.25 is passed as 125.
+     */
+    public function pointsFor(int $spend, int $multiplierHundredths = 100): int
+    {
+        return intdiv(intdiv($spend, $this->spend_per_point) * $multiplierHundredths, 100);
+    }
 }

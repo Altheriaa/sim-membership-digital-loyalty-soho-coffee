@@ -37,7 +37,7 @@
                                 @endif
                             </td>
                             <td class="px-4 py-3 tabular-nums sm:px-6">{{ $tier->isBase() ? 'Semua member' : 'Mulai '.Rupiah::format($tier->min_spend) }}</td>
-                            <td class="px-4 py-3 tabular-nums sm:px-6">{{ rtrim(rtrim($tier->multiplier, '0'), '.') }}×</td>
+                            <td class="px-4 py-3 tabular-nums sm:px-6">{{ $tier->multiplierLabel() }}×</td>
                             <td class="px-4 py-3 text-right sm:px-6">
                                 <april:button-link href="{{ route('admin.tiers.edit', $tier) }}" variant="outline" size="none" class="h-11 px-3 sm:h-9">
                                     Ubah<span class="sr-only"> {{ $tier->name }}</span>

@@ -1,0 +1,43 @@
+<x-layouts.customer title="Verifikasi OTP" :show-nav="false">
+    <div class="flex flex-col gap-6 pt-6">
+        <header class="flex flex-col gap-1.5 text-center">
+            <h1 class="font-serif text-2xl font-bold tracking-tight text-foreground sm:text-3xl">Verifikasi OTP</h1>
+            <p class="text-xs text-muted-foreground">
+                Ketik 4-digit kode rahasia yang telah dikirim ke nomor WhatsApp <span class="font-bold text-foreground">{{ $phone }}</span>.
+            </p>
+        </header>
+
+        <form method="POST" action="{{ route('customer.verify-otp') }}" class="flex flex-col gap-5 rounded-lg border border-border bg-card p-5 text-card-foreground shadow-xs">
+            @csrf
+
+            <div class="flex flex-col items-center gap-2">
+                <label for="otp-input" class="text-xs font-semibold text-foreground">Kode OTP 4-Digit</label>
+                <input
+                    id="otp-input"
+                    type="text"
+                    name="otp"
+                    maxlength="4"
+                    placeholder="••••"
+                    required
+                    autofocus
+                    autocomplete="one-time-code"
+                    class="h-14 w-44 rounded-md border border-input bg-background text-center font-mono text-2xl font-bold tracking-[0.5em] text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                >
+                @error('otp')
+                    <p class="text-xs text-destructive">{{ $message }}</p>
+                @enderror
+            </div>
+
+            <april:button type="submit" size="none" class="flex h-11 w-full items-center justify-center font-medium text-xs">
+                Verifikasi dan Masuk
+            </april:button>
+
+            <div class="flex items-center justify-between border-t border-border/80 pt-3 text-[11px] text-muted-foreground">
+                <a href="{{ route('customer.login') }}" class="hover:text-foreground underline underline-offset-2">
+                    Ganti nomor HP
+                </a>
+                <span>Masa aktif 5 menit</span>
+            </div>
+        </form>
+    </div>
+</x-layouts.customer>

@@ -5,7 +5,7 @@
     <head>
         <x-head :title="$title" />
     </head>
-    <body class="bg-background font-mono text-foreground antialiased">
+    <body class="bg-background font-sans text-foreground antialiased">
         <a href="#main-content" class="sr-only z-50 rounded-md bg-primary px-4 py-2 text-primary-foreground focus:not-sr-only focus:fixed focus:top-4 focus:left-4">
             Lewati ke konten utama
         </a>

@@ -1,9 +1,10 @@
 <?php
 
 use App\Models\Voucher;
+use Illuminate\Support\Carbon;
 
 test('statusLabel tells inactive, upcoming, expired and active vouchers apart', function (array $attributes, string $expected) {
-    travelTo('2026-10-15');
+    $this->travelTo(Carbon::parse('2026-10-15'));
 
     $voucher = Voucher::factory()->make($attributes);
 
@@ -20,7 +21,7 @@ test('statusLabel tells inactive, upcoming, expired and active vouchers apart', 
 ]);
 
 test('the openForClaims scope applies the same rules as statusLabel', function () {
-    travelTo('2026-10-15');
+    $this->travelTo(Carbon::parse('2026-10-15'));
     $open = Voucher::factory()->create(['name' => 'Terbuka']);
     Voucher::factory()->inactive()->create();
     Voucher::factory()->create(['available_from' => '2026-10-16']);
