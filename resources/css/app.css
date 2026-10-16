@@ -3,6 +3,8 @@
 
 @source '../../storage/framework/views/*.php';
 @source '../views/**/*.blade.php';
+@source '../../vendor/yungifez/april-ui/resources/views/**/*.blade.php';
+@source '../../vendor/yungifez/april-ui/resources/js/**/*.js';
 
 /*
  * Serif titles over a monospace body give the admin the voice of a developer
@@ -54,6 +56,7 @@ body {
     --sidebar-accent-foreground: 40 10% 11%;
     --sidebar-border: 45 10% 83%;
     --sidebar-ring: 224 76% 45%;
+    --sidebar-width-icon: 4.75rem;
 }
 
 :root.dark {

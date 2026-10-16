@@ -10,7 +10,7 @@
             Lewati ke konten utama
         </a>
 
-        <april:sidebar-layout class="h-svh overflow-hidden" width="16rem">
+        <april:sidebar-layout class="h-svh overflow-hidden" width="16rem" width-icon="4.75rem">
             <x-admin-sidebar />
 
             <april:sidebar-inset class="overflow-y-auto">
@@ -35,7 +35,5 @@
                 </footer>
             </april:sidebar-inset>
         </april:sidebar-layout>
-
-        @aprilScripts
     </body>
 </html>

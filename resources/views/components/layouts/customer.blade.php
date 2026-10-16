@@ -32,6 +32,28 @@
                 </div>
             </header>
 
+            <!-- PWA Install Banner -->
+            <div
+                x-cloak
+                x-show="$store.pwa?.canInstall"
+                class="mx-4 mt-3 flex items-center justify-between gap-3 rounded-lg border border-primary/20 bg-primary/10 p-3 text-xs text-primary"
+            >
+                <div class="flex items-center gap-2.5">
+                    <x-lucide-smartphone class="size-4 shrink-0 text-primary" />
+                    <div>
+                        <p class="font-medium text-foreground">Pasang Aplikasi {{ config('app.name') }}</p>
+                        <p class="text-[11px] text-muted-foreground">Akses kartu member lebih cepat dari layar utama HP.</p>
+                    </div>
+                </div>
+                <button
+                    type="button"
+                    x-on:click="$store.pwa.install()"
+                    class="shrink-0 rounded-md bg-primary px-3 py-1.5 font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
+                >
+                    Pasang
+                </button>
+            </div>
+
             <!-- Flash Alert (Status & OTP Simulated Banner) -->
             @if (session('status'))
                 <div class="mx-4 mt-3 rounded-md border border-primary/30 bg-primary/10 px-3.5 py-2.5 text-xs text-primary">
