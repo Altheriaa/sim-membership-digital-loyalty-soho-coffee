@@ -1,0 +1,82 @@
+@import 'tailwindcss';
+@import "../../vendor/yungifez/april-ui/resources/css/april.css";
+
+@source '../../storage/framework/views/*.php';
+@source '../views/**/*.blade.php';
+
+/*
+ * Serif titles over a monospace body give the admin the voice of a developer
+ * tool. System font stacks keep the page free of font downloads.
+ */
+@theme {
+    --font-serif: 'Iowan Old Style', 'Palatino Linotype', Palatino, 'Book Antiqua', Georgia, serif;
+    --font-mono: ui-monospace, 'SF Mono', 'JetBrains Mono', Menlo, Consolas, 'Liberation Mono', monospace;
+}
+
+/*
+ * Paper-warm surfaces with one blue accent. Every text pairing was checked
+ * against WCAG AA in both modes; muted text stays above 5.4:1 and input
+ * borders above 3:1.
+ */
+:root {
+    color-scheme: light;
+    --background: 48 22% 95%;
+    --foreground: 40 10% 11%;
+    --card: 48 30% 98%;
+    --card-foreground: 40 10% 11%;
+    --popover: 48 30% 99%;
+    --popover-foreground: 40 10% 11%;
+    --primary: 224 76% 45%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 46 14% 90%;
+    --secondary-foreground: 40 10% 11%;
+    --muted: 46 14% 90%;
+    --muted-foreground: 40 6% 34%;
+    --accent: 46 12% 88%;
+    --accent-foreground: 40 10% 11%;
+    --destructive: 0 70% 40%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 45 10% 83%;
+    --input: 42 6% 52%;
+    --ring: 224 76% 45%;
+    --radius: 0.25rem;
+    --sidebar-background: 48 18% 92%;
+    --sidebar-foreground: 40 10% 11%;
+    --sidebar-primary: 224 76% 45%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 46 12% 85%;
+    --sidebar-accent-foreground: 40 10% 11%;
+    --sidebar-border: 45 10% 83%;
+    --sidebar-ring: 224 76% 45%;
+}
+
+:root.dark {
+    color-scheme: dark;
+    --background: 40 6% 8%;
+    --foreground: 45 15% 92%;
+    --card: 40 6% 11%;
+    --card-foreground: 45 15% 92%;
+    --popover: 40 6% 11%;
+    --popover-foreground: 45 15% 92%;
+    --primary: 220 90% 68%;
+    --primary-foreground: 40 6% 8%;
+    --secondary: 40 5% 15%;
+    --secondary-foreground: 45 15% 92%;
+    --muted: 40 5% 15%;
+    --muted-foreground: 40 6% 66%;
+    --accent: 40 5% 17%;
+    --accent-foreground: 45 15% 92%;
+    --destructive: 0 80% 68%;
+    --destructive-foreground: 40 6% 8%;
+    --border: 40 5% 21%;
+    --input: 40 5% 40%;
+    --ring: 220 90% 68%;
+    --sidebar-background: 40 6% 6%;
+    --sidebar-foreground: 45 15% 92%;
+    --sidebar-primary: 220 90% 68%;
+    --sidebar-primary-foreground: 40 6% 8%;
+    --sidebar-accent: 40 5% 15%;
+    --sidebar-accent-foreground: 45 15% 92%;
+    --sidebar-border: 40 5% 17%;
+    --sidebar-ring: 220 90% 68%;
+}
