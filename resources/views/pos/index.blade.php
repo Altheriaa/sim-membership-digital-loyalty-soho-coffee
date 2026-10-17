@@ -12,6 +12,17 @@
         </div>
 
         <div class="flex flex-wrap items-center gap-2">
+            <button
+                type="button"
+                x-cloak
+                x-show="$store.pwa?.canPrompt"
+                x-on:click="$store.pwa.install()"
+                class="flex h-9 items-center gap-1.5 rounded-md border border-primary/30 bg-primary/10 px-3 text-xs font-semibold text-primary hover:bg-primary/20 transition-colors"
+                title="Pasang aplikasi POS"
+            >
+                <x-lucide-download class="size-3.5" />
+                <span class="hidden sm:inline">Install POS</span>
+            </button>
             @if (auth()->user()->hasRole(Role::Admin))
                 <april:button-link href="{{ route('admin.dashboard') }}" variant="outline" size="none" class="h-9 px-3 text-xs">
                     Ke back office

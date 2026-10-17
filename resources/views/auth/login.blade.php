@@ -1,11 +1,12 @@
 <x-layouts.guest title="Masuk">
     <header class="flex flex-col gap-1">
         <p class="font-serif text-xl font-semibold">{{ config('app.name') }}</p>
-        <h1 class="font-serif text-3xl font-medium tracking-tight">Masuk ke back office</h1>
+        <h1 class="font-serif text-3xl font-medium tracking-tight">Masuk</h1>
         <p class="text-sm text-muted-foreground">Untuk admin, owner, dan kasir.</p>
     </header>
 
-    <form method="POST" action="{{ route('login') }}" class="flex flex-col gap-4 rounded-lg border border-border bg-card p-4 text-card-foreground sm:p-6">
+    <form method="POST" action="{{ route('login') }}"
+        class="flex flex-col gap-4 rounded-lg border border-border bg-card p-4 text-card-foreground sm:p-6">
         @csrf
 
         <x-field name="email" label="Email" type="email" autocomplete="username" required autofocus />

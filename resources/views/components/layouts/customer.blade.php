@@ -16,6 +16,18 @@
                 </a>
 
                 <div class="flex items-center gap-2">
+                    <button
+                        type="button"
+                        x-cloak
+                        x-show="$store.pwa?.canPrompt"
+                        x-on:click="$store.pwa.install()"
+                        title="Pasang Aplikasi ke Smartphone"
+                        aria-label="Pasang Aplikasi"
+                        class="flex h-8 items-center gap-1.5 rounded-md border border-primary/30 bg-primary/10 px-2.5 text-[11px] font-semibold text-primary hover:bg-primary/20 transition-colors"
+                    >
+                        <x-lucide-download class="size-3.5" />
+                        <span>Install</span>
+                    </button>
                     <x-theme-toggle />
                     @if (auth('customer')->check())
                         <form method="POST" action="{{ route('customer.logout') }}" class="inline">
@@ -32,26 +44,43 @@
                 </div>
             </header>
 
-            <!-- PWA Install Banner -->
+            <!-- PWA Install Banner (Android & iOS) -->
             <div
                 x-cloak
-                x-show="$store.pwa?.canInstall"
-                class="mx-4 mt-3 flex items-center justify-between gap-3 rounded-lg border border-primary/20 bg-primary/10 p-3 text-xs text-primary"
+                x-show="$store.pwa?.canPrompt && !$store.pwa?.dismissed"
+                class="mx-4 mt-3 flex items-center justify-between gap-3 rounded-xl border border-primary/30 bg-linear-to-r from-primary/15 via-card to-primary/5 p-3 text-xs shadow-xs"
             >
-                <div class="flex items-center gap-2.5">
-                    <x-lucide-smartphone class="size-4 shrink-0 text-primary" />
-                    <div>
-                        <p class="font-medium text-foreground">Pasang Aplikasi {{ config('app.name') }}</p>
-                        <p class="text-[11px] text-muted-foreground">Akses kartu member lebih cepat dari layar utama HP.</p>
+                <div class="flex items-center gap-2.5 min-w-0">
+                    <span class="flex size-9 shrink-0 items-center justify-center rounded-lg bg-[#1c325c] p-1.5 shadow-xs">
+                        <img src="{{ asset('icons/Logo.png') }}" alt="" class="size-full object-contain">
+                    </span>
+                    <div class="flex flex-col min-w-0">
+                        <p class="font-semibold text-foreground leading-tight truncate">Pasang Aplikasi {{ config('app.name') }}</p>
+                        <p class="text-[11px] text-muted-foreground leading-snug">
+                            <span x-show="$store.pwa?.isIOS">Akses cepat di iPhone tanpa buka Safari.</span>
+                            <span x-show="!$store.pwa?.isIOS">Akses langsung dari layar utama smartphone.</span>
+                        </p>
                     </div>
                 </div>
-                <button
-                    type="button"
-                    x-on:click="$store.pwa.install()"
-                    class="shrink-0 rounded-md bg-primary px-3 py-1.5 font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
-                >
-                    Pasang
-                </button>
+
+                <div class="flex items-center gap-1.5 shrink-0">
+                    <button
+                        type="button"
+                        x-on:click="$store.pwa.install()"
+                        class="flex h-8 items-center gap-1 rounded-md bg-primary px-3 text-xs font-semibold text-primary-foreground hover:bg-primary/90 shadow-xs transition-colors"
+                    >
+                        <x-lucide-download class="size-3.5" />
+                        <span>Pasang</span>
+                    </button>
+                    <button
+                        type="button"
+                        x-on:click="$store.pwa.dismiss()"
+                        aria-label="Tutup notifikasi pasang aplikasi"
+                        class="flex size-8 items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
+                    >
+                        <x-lucide-x class="size-4" />
+                    </button>
+                </div>
             </div>
 
             <!-- Flash Alert (Status & OTP Simulated Banner) -->
@@ -118,6 +147,7 @@
                 </nav>
             @endif
         </div>
+        <x-pwa-modals />
         @aprilScripts
     </body>
 </html>

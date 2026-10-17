@@ -12,28 +12,74 @@ Alpine.store('theme', createTheme(window));
 
 Alpine.store('pwa', {
     deferredPrompt: null,
-    canInstall: false,
+    isIOS: false,
+    isStandalone: false,
+    showIOSModal: false,
+    showAndroidModal: false,
+    dismissed: false,
+
     init() {
+        this.isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+        const ua = window.navigator.userAgent.toLowerCase();
+        this.isIOS = /iphone|ipad|ipod/.test(ua) || (window.navigator.platform === 'MacIntel' && window.navigator.maxTouchPoints > 1);
+
+        try {
+            const dismissedAt = localStorage.getItem('pwa_install_dismissed_at');
+            if (dismissedAt && Date.now() - parseInt(dismissedAt, 10) < 24 * 60 * 60 * 1000) {
+                this.dismissed = true;
+            }
+        } catch {
+            // LocalStorage disabled or blocked
+        }
+
         window.addEventListener('beforeinstallprompt', (e) => {
             e.preventDefault();
             this.deferredPrompt = e;
-            this.canInstall = true;
         });
+
         window.addEventListener('appinstalled', () => {
             this.deferredPrompt = null;
-            this.canInstall = false;
+            this.isStandalone = true;
+            this.dismissed = true;
+            this.showIOSModal = false;
+            this.showAndroidModal = false;
         });
     },
+
+    get canPrompt() {
+        return !this.isStandalone;
+    },
+
+    dismiss() {
+        this.dismissed = true;
+        try {
+            localStorage.setItem('pwa_install_dismissed_at', Date.now().toString());
+        } catch {
+            // LocalStorage fallback
+        }
+    },
+
     async install() {
-        if (!this.deferredPrompt) {
+        if (this.isIOS) {
+            this.showIOSModal = true;
             return;
         }
-        this.deferredPrompt.prompt();
-        const choice = await this.deferredPrompt.userChoice;
-        if (choice && choice.outcome === 'accepted') {
-            this.canInstall = false;
+
+        if (this.deferredPrompt) {
+            this.deferredPrompt.prompt();
+            const choice = await this.deferredPrompt.userChoice;
+            if (choice && choice.outcome === 'accepted') {
+                this.dismiss();
+            }
+            this.deferredPrompt = null;
+        } else {
+            this.showAndroidModal = true;
         }
-        this.deferredPrompt = null;
+    },
+
+    closeModals() {
+        this.showIOSModal = false;
+        this.showAndroidModal = false;
     },
 });
 

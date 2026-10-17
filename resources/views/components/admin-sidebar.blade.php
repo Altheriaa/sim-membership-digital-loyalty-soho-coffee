@@ -29,8 +29,8 @@
             class="flex items-center gap-3 rounded-xl px-2 py-1.5 outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0"
             title="{{ config('app.name') }}">
             <span
-                class="flex size-9 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary group-data-[collapsible=icon]:size-11">
-                <x-lucide-coffee class="size-5 group-data-[collapsible=icon]:size-6" />
+                class="flex size-9 shrink-0 items-center justify-center rounded-xl bg-[#1c325c] p-1.5 shadow-xs ring-1 ring-black/10 dark:ring-white/10 group-data-[collapsible=icon]:size-10 group-data-[collapsible=icon]:p-2">
+                <img src="{{ asset('icons/Logo.png') }}" alt="{{ config('app.name') }}" class="size-full object-contain">
             </span>
             <div class="flex flex-col group-data-[collapsible=icon]:hidden min-w-0">
                 <span class="truncate font-serif text-base font-semibold leading-tight">{{ config('app.name') }}</span>

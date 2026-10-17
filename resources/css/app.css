@@ -22,9 +22,8 @@ body {
 }
 
 /*
- * Paper-warm surfaces with one blue accent. Every text pairing was checked
- * against WCAG AA in both modes; muted text stays above 5.4:1 and input
- * borders above 3:1.
+ * Paper-warm surfaces with Soho Coffee golden-amber logo accent.
+ * High-contrast dark foreground ensures WCAG AAA accessibility on buttons.
  */
 :root {
     color-scheme: light;
@@ -34,8 +33,8 @@ body {
     --card-foreground: 40 10% 11%;
     --popover: 48 30% 99%;
     --popover-foreground: 40 10% 11%;
-    --primary: 224 76% 45%;
-    --primary-foreground: 0 0% 100%;
+    --primary: 44 92% 50%;
+    --primary-foreground: 40 15% 10%;
     --secondary: 46 14% 90%;
     --secondary-foreground: 40 10% 11%;
     --muted: 46 14% 90%;
@@ -46,16 +45,16 @@ body {
     --destructive-foreground: 0 0% 100%;
     --border: 45 10% 83%;
     --input: 42 6% 52%;
-    --ring: 224 76% 45%;
+    --ring: 44 92% 50%;
     --radius: 0.25rem;
     --sidebar-background: 48 18% 92%;
     --sidebar-foreground: 40 10% 11%;
-    --sidebar-primary: 224 76% 45%;
-    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-primary: 44 92% 50%;
+    --sidebar-primary-foreground: 40 15% 10%;
     --sidebar-accent: 46 12% 85%;
     --sidebar-accent-foreground: 40 10% 11%;
     --sidebar-border: 45 10% 83%;
-    --sidebar-ring: 224 76% 45%;
+    --sidebar-ring: 44 92% 50%;
     --sidebar-width-icon: 4.75rem;
 }
 
@@ -67,8 +66,8 @@ body {
     --card-foreground: 45 15% 92%;
     --popover: 40 6% 11%;
     --popover-foreground: 45 15% 92%;
-    --primary: 220 90% 68%;
-    --primary-foreground: 40 6% 8%;
+    --primary: 46 95% 58%;
+    --primary-foreground: 40 20% 8%;
     --secondary: 40 5% 15%;
     --secondary-foreground: 45 15% 92%;
     --muted: 40 5% 15%;
@@ -79,13 +78,13 @@ body {
     --destructive-foreground: 40 6% 8%;
     --border: 40 5% 21%;
     --input: 40 5% 40%;
-    --ring: 220 90% 68%;
+    --ring: 46 95% 58%;
     --sidebar-background: 40 6% 6%;
     --sidebar-foreground: 45 15% 92%;
-    --sidebar-primary: 220 90% 68%;
-    --sidebar-primary-foreground: 40 6% 8%;
+    --sidebar-primary: 46 95% 58%;
+    --sidebar-primary-foreground: 40 20% 8%;
     --sidebar-accent: 40 5% 15%;
     --sidebar-accent-foreground: 45 15% 92%;
     --sidebar-border: 40 5% 17%;
-    --sidebar-ring: 220 90% 68%;
+    --sidebar-ring: 46 95% 58%;
 }

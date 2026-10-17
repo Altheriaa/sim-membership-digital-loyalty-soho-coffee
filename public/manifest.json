@@ -40,14 +40,24 @@
       "short_name": "Member",
       "description": "Buka dasbor membership dan voucer pelanggan",
       "url": "/app",
-      "icons": [{ "src": "/icons/icon-192x192.png", "sizes": "192x192" }]
+      "icons": [
+        {
+          "src": "/icons/icon-192x192.png",
+          "sizes": "192x192"
+        }
+      ]
     },
     {
       "name": "Layar Kasir (POS)",
       "short_name": "Kasir",
       "description": "Buka layar kasir transaksi penjualan",
       "url": "/pos",
-      "icons": [{ "src": "/icons/icon-192x192.png", "sizes": "192x192" }]
+      "icons": [
+        {
+          "src": "/icons/icon-192x192.png",
+          "sizes": "192x192"
+        }
+      ]
     }
   ]
 }

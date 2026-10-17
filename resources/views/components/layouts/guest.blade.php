@@ -13,6 +13,7 @@
         ]) }}>
             {{ $slot }}
         </main>
+        <x-pwa-modals />
         @aprilScripts
     </body>
 </html>
