@@ -62,14 +62,18 @@ test('dashboard points the admin to the first step when there is no menu yet', f
         ->assertSee(route('admin.menu-items.create'), false);
 });
 
-test('dashboard says plainly that sales analytics are not built yet and shows no sample numbers', function () {
+test('dashboard displays executive summary cards and sales trend chart', function () {
     signInAsAdmin();
 
     $response = $this->get(route('admin.dashboard'));
 
     $response->assertOk()
-        ->assertSeeText('Analitik penjualan belum tersedia')
-        ->assertSeeText('Dashboard ini tidak menampilkan angka contoh.');
+        ->assertSeeText('Pendapatan')
+        ->assertSeeText('Total transaksi')
+        ->assertSeeText('Member baru')
+        ->assertSeeText('Retensi kunjungan')
+        ->assertSeeText('Tren pendapatan')
+        ->assertSeeText('Sebaran tier');
 });
 
 test('owners see the same summary without management buttons', function () {
