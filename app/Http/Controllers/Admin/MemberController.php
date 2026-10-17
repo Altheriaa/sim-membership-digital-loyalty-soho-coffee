@@ -5,10 +5,12 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\MemberRequest;
 use App\Models\Member;
+use App\Models\Tier;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class MemberController extends Controller
 {
@@ -24,6 +26,7 @@ class MemberController extends Controller
 
         return view('admin.members.index', [
             'members' => $members,
+            'tiers' => Tier::query()->orderByDesc('min_spend')->get(),
             'search' => $search,
             'totalMembers' => Member::query()->count(),
             'totalPoints' => (int) Member::query()->sum('points_balance'),
@@ -58,11 +61,13 @@ class MemberController extends Controller
     public function adjustPoints(Request $request, Member $member): RedirectResponse
     {
         $validated = $request->validate([
-            'points' => ['required', 'integer', 'not_in:0'],
+            'points' => ['required', 'integer', 'not_in:0', 'min:-999999999', 'max:999999999'],
             'description' => ['required', 'string', 'max:100'],
         ], [
             'points.required' => 'Jumlah poin wajib diisi.',
             'points.not_in' => 'Jumlah poin tidak boleh 0.',
+            'points.min' => 'Jumlah poin terlalu kecil.',
+            'points.max' => 'Jumlah poin terlalu besar.',
             'description.required' => 'Keterangan penyesuaian wajib diisi.',
         ]);
 
@@ -73,6 +78,14 @@ class MemberController extends Controller
         }
 
         DB::transaction(function () use ($member, $points, $validated): void {
+            $member = Member::query()->lockForUpdate()->findOrFail($member->id);
+
+            if ($points < 0 && $member->points_balance < abs($points)) {
+                throw ValidationException::withMessages([
+                    'points' => "Pengurangan poin melebihi saldo member saat ini ({$member->points_balance} poin).",
+                ]);
+            }
+
             $member->points_balance += $points;
             $member->save();
 

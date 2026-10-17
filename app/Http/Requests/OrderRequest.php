@@ -27,6 +27,13 @@ class OrderRequest extends FormRequest
             'items.*.id' => ['required', 'integer', 'distinct', Rule::exists('menu_items', 'id')],
             'items.*.quantity' => ['required', 'integer', 'min:1', 'max:'.self::MAX_QUANTITY],
             'member_id' => ['nullable', 'integer', Rule::exists('members', 'id')],
+            'voucher_id' => [
+                'nullable',
+                'integer',
+                Rule::prohibitedIf(blank($this->input('member_id'))),
+                Rule::exists('member_vouchers', 'id'),
+            ],
+            'voucher_pin' => ['required_with:voucher_id', 'nullable', 'digits:6'],
             'payment_method' => ['required', Rule::enum(PaymentMethod::class)],
             'cash_received' => [
                 Rule::requiredIf($this->input('payment_method') === PaymentMethod::Cash->value),
@@ -48,6 +55,10 @@ class OrderRequest extends FormRequest
             'items.*.id.distinct' => 'Menu yang sama muncul dua kali di keranjang. Muat ulang halaman kasir.',
             'cash_received.required' => 'Isi uang yang diterima dari pelanggan.',
             'cash_received.prohibited' => 'Uang diterima hanya diisi untuk pembayaran tunai.',
+            'voucher_id.prohibited_if' => 'Voucer hanya bisa dipakai untuk transaksi member. Pilih member dulu di panel member.',
+            'voucher_id.exists' => 'Voucer tidak dikenali. Hapus voucer dari keranjang lalu cek kode lagi.',
+            'voucher_pin.required_with' => 'PIN Keamanan member wajib diisi untuk memakai voucer.',
+            'voucher_pin.digits' => 'PIN Keamanan harus terdiri dari 6 digit angka.',
         ];
     }
 }

@@ -11,6 +11,7 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class RewardController extends Controller
 {
@@ -36,40 +37,50 @@ class RewardController extends Controller
         /** @var Member $member */
         $member = Auth::guard('customer')->user();
 
-        if (! $voucher->isOpenForClaims()) {
-            return back()->withErrors(['claim' => 'Promosi voucer ini sedang tidak aktif atau belum dibuka.']);
-        }
-
-        if ($voucher->quota !== null && $voucher->quota <= 0) {
-            return back()->withErrors(['claim' => 'Kuota voucer ini sudah habis.']);
-        }
-
-        if ($member->points_balance < $voucher->points_cost) {
-            return back()->withErrors(['claim' => "Poin Anda tidak mencukupi (dibutuhkan {$voucher->points_cost} poin, saldo Anda {$member->points_balance} poin)."]);
-        }
-
         $claimed = DB::transaction(function () use ($member, $voucher): MemberVoucher {
-            $member->points_balance -= $voucher->points_cost;
-            $member->save();
+            $lockedVoucher = Voucher::query()->lockForUpdate()->findOrFail($voucher->id);
 
-            $member->pointTransactions()->create([
-                'order_id' => null,
-                'points' => -$voucher->points_cost,
-                'balance_after' => $member->points_balance,
-                'description' => "Penukaran voucer: {$voucher->name}",
-            ]);
-
-            if ($voucher->quota !== null) {
-                $voucher->decrement('quota');
+            if (! $lockedVoucher->isOpenForClaims()) {
+                throw ValidationException::withMessages([
+                    'claim' => 'Promosi voucer ini sedang tidak aktif atau belum dibuka.',
+                ]);
             }
 
-            $validDays = $voucher->valid_days ?? 30;
+            if ($lockedVoucher->quota !== null && $lockedVoucher->quota <= 0) {
+                throw ValidationException::withMessages([
+                    'claim' => 'Kuota voucer ini sudah habis.',
+                ]);
+            }
 
-            return $member->vouchers()->create([
-                'voucher_id' => $voucher->id,
+            $lockedMember = Member::query()->lockForUpdate()->findOrFail($member->id);
+
+            if ($lockedMember->points_balance < $lockedVoucher->points_cost) {
+                throw ValidationException::withMessages([
+                    'claim' => "Poin Anda tidak mencukupi (dibutuhkan {$lockedVoucher->points_cost} poin, saldo Anda {$lockedMember->points_balance} poin).",
+                ]);
+            }
+
+            $lockedMember->points_balance -= $lockedVoucher->points_cost;
+            $lockedMember->save();
+
+            $lockedMember->pointTransactions()->create([
+                'order_id' => null,
+                'points' => -$lockedVoucher->points_cost,
+                'balance_after' => $lockedMember->points_balance,
+                'description' => "Penukaran voucer: {$lockedVoucher->name}",
+            ]);
+
+            if ($lockedVoucher->quota !== null) {
+                $lockedVoucher->decrement('quota');
+            }
+
+            $validDays = $lockedVoucher->valid_days ?? 30;
+
+            return $lockedMember->vouchers()->create([
+                'voucher_id' => $lockedVoucher->id,
                 'code' => MemberVoucher::generateCode(),
                 'status' => 'active',
-                'points_spent' => $voucher->points_cost,
+                'points_spent' => $lockedVoucher->points_cost,
                 'expires_at' => Carbon::now()->addDays($validDays)->endOfDay(),
             ]);
         });

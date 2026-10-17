@@ -1,4 +1,4 @@
-import { cashSuggestions, formatRupiah, isValidPhone, normalizePhone, pointsFor, subtotalOf, taxFor } from './pos-math';
+import { cashSuggestions, formatRupiah, isValidPhone, normalizePhone, pointsFor, subtotalOf, taxFor, voucherDiscount } from './pos-math';
 
 const MAX_QUANTITY = 99;
 
@@ -95,17 +95,12 @@ export default function posRegister(configId) {
         paying: false,
         payErrors: [],
 
-        orderPanelVisible: false,
-
-        init() {
-            const panel = this.$refs.orderPanel;
-
-            if (panel && 'IntersectionObserver' in window) {
-                new IntersectionObserver(([entry]) => {
-                    this.orderPanelVisible = entry.isIntersecting;
-                }).observe(panel);
-            }
-        },
+        voucherCode: '',
+        voucherInfo: null,
+        voucherPin: '',
+        voucher: null,
+        voucherBusy: false,
+        voucherError: '',
 
         rupiah(amount) {
             return formatRupiah(amount);
@@ -141,8 +136,12 @@ export default function posRegister(configId) {
             return taxFor(this.subtotal, this.settings.taxBasisPoints);
         },
 
+        get voucherAmount() {
+            return voucherDiscount(this.voucher, this.subtotal);
+        },
+
         get total() {
-            return this.subtotal + this.tax;
+            return this.subtotal - this.voucherAmount + this.tax;
         },
 
         get pointsEstimate() {
@@ -234,6 +233,7 @@ export default function posRegister(configId) {
 
                 if (member) {
                     this.member = member;
+                    this.clearVoucher();
                     this.memberStatus = 'found';
                 } else {
                     this.registerPhone = normalized;
@@ -270,6 +270,7 @@ export default function posRegister(configId) {
                 });
 
                 this.member = member;
+                this.clearVoucher();
                 this.memberStatus = 'found';
                 this.registerName = '';
             } catch (error) {
@@ -286,7 +287,67 @@ export default function posRegister(configId) {
             this.registerError = '';
             this.registerName = '';
             this.phone = '';
+            this.clearVoucher();
             this.$nextTick(() => this.$refs.phoneInput?.focus());
+        },
+
+        async checkVoucher() {
+            if (this.voucherBusy || !this.member) {
+                return;
+            }
+
+            const code = this.voucherCode.trim().toUpperCase();
+
+            if (code === '') {
+                this.voucherError = 'Kode voucer wajib diisi.';
+
+                return;
+            }
+
+            this.voucherBusy = true;
+            this.voucherError = '';
+
+            try {
+                const url = `${this.routes.voucherLookup}?code=${encodeURIComponent(code)}&member_id=${encodeURIComponent(this.member.id)}`;
+                const { voucher } = await send(url, { csrfToken: this.csrfToken });
+
+                this.voucherInfo = voucher;
+                this.voucherPin = '';
+            } catch (error) {
+                this.voucherError = error.message;
+            } finally {
+                this.voucherBusy = false;
+            }
+        },
+
+        useVoucher() {
+            const pin = String(this.voucherPin).replace(/\D+/g, '');
+
+            if (pin.length !== 6) {
+                this.voucherError = 'PIN Keamanan member harus tepat 6 digit angka.';
+
+                return;
+            }
+
+            this.voucher = { ...this.voucherInfo, pin };
+            this.voucherInfo = null;
+            this.voucherPin = '';
+            this.voucherError = '';
+            this.payErrors = [];
+        },
+
+        clearVoucher() {
+            this.voucherCode = '';
+            this.voucherInfo = null;
+            this.voucherPin = '';
+            this.voucher = null;
+            this.voucherError = '';
+        },
+
+        voucherEdited() {
+            if (this.voucherError) {
+                this.voucherError = '';
+            }
         },
 
         get cashValue() {
@@ -325,6 +386,8 @@ export default function posRegister(configId) {
                     body: {
                         items: this.cart.map(({ id, quantity }) => ({ id, quantity })),
                         member_id: this.member?.id ?? null,
+                        voucher_id: this.voucher?.id ?? null,
+                        voucher_pin: this.voucher?.pin ?? null,
                         payment_method: this.paymentMethod,
                         cash_received: this.paymentMethod === 'cash' ? this.cashValue : null,
                     },
@@ -334,6 +397,10 @@ export default function posRegister(configId) {
                 window.location.assign(receiptUrl);
             } catch (error) {
                 const messages = Object.values(error.errors ?? {}).flat();
+
+                if ('voucher_id' in (error.errors ?? {}) || 'voucher_pin' in (error.errors ?? {})) {
+                    this.clearVoucher();
+                }
 
                 this.payErrors = messages.length > 0 ? [...new Set(messages)] : [error.message];
                 this.paying = false;

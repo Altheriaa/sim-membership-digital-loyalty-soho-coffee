@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Collection;
 
 #[Fillable(['name', 'min_spend', 'multiplier'])]
 class Tier extends Model
@@ -67,6 +68,20 @@ class Tier extends Model
         return static::query()
             ->where('min_spend', '<=', $lifetimeSpend)
             ->orderByDesc('min_spend')
+            ->first();
+    }
+
+    /**
+     * The tier for a lifetime spend using tiers loaded in one query, avoiding a
+     * fresh database trip per member row.
+     *
+     * @param  Collection<int, self>  $tiers
+     */
+    public static function forSpendFrom(Collection $tiers, int $lifetimeSpend): ?self
+    {
+        return $tiers
+            ->filter(fn (self $tier): bool => $tier->min_spend <= $lifetimeSpend)
+            ->sortByDesc('min_spend')
             ->first();
     }
 }

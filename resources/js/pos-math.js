@@ -37,6 +37,14 @@ export function subtotalOf(lines) {
     return lines.reduce((sum, line) => sum + line.price * line.quantity, 0);
 }
 
+/**
+ * The rupiah value a pinned member voucher takes off this cart. The register
+ * never charges more than the subtotal, mirroring the server-side cap.
+ */
+export function voucherDiscount(voucher, subtotal) {
+    return voucher ? Math.min(voucher.amount, subtotal) : 0;
+}
+
 export function formatRupiah(amount) {
     const rounded = Math.round(amount);
     const grouped = Math.abs(rounded).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');

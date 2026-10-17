@@ -49,6 +49,7 @@
             'routes' => [
                 'lookup' => route('pos.members.lookup'),
                 'registerMember' => route('pos.members.store'),
+                'voucherLookup' => route('pos.vouchers.lookup'),
                 'storeOrder' => route('pos.orders.store'),
             ],
             'csrfToken' => csrf_token(),
@@ -160,9 +161,8 @@
             </div>
         </section>
 
-        <!-- Kolom Kanan: Keranjang, Member & Pembayaran -->
+        <!-- Kolom Kanan: Keranjang, Member, Voucer & Pembayaran -->
         <section
-            x-ref="orderPanel"
             aria-labelledby="order-heading"
             class="lg:col-span-5 xl:col-span-4 flex flex-col gap-4 rounded-lg border border-border bg-card p-4 sm:p-5 text-card-foreground shadow-xs"
         >
@@ -318,6 +318,105 @@
                 </div>
             </div>
 
+            <!-- Panel Voucer Member -->
+            <div class="rounded-md border border-border bg-background/50 p-3 flex flex-col gap-2">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Voucer</span>
+                    <button
+                        type="button"
+                        x-show="voucher"
+                        @click="clearVoucher"
+                        class="text-[11px] text-muted-foreground hover:text-destructive underline underline-offset-2"
+                    >
+                        Lepas voucer
+                    </button>
+                </div>
+
+                <!-- Belum ada member: voucer menunggu -->
+                <p x-show="!member" class="text-xs text-muted-foreground">
+                    Voucer dipakai dengan kode klaim member. Pilih member di panel atas untuk mengaktifkan kotak ini.
+                </p>
+
+                <!-- Cari kode voucer -->
+                <div x-show="member && !voucherInfo && !voucher" class="flex flex-col gap-1.5">
+                    <div class="flex gap-1.5">
+                        <input
+                            type="text"
+                            x-model="voucherCode"
+                            @input="voucherEdited"
+                            @keydown.enter.prevent="checkVoucher"
+                            placeholder="Kode voucer (KOP-XXXXXX)"
+                            aria-label="Kode voucer member"
+                            class="h-9 flex-1 rounded border border-input bg-card px-2.5 text-xs uppercase tracking-wider text-foreground placeholder:tracking-normal placeholder:normal-case placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                        >
+                        <button
+                            type="button"
+                            @click="checkVoucher"
+                            :disabled="voucherBusy || !voucherCode.trim()"
+                            class="h-9 rounded bg-secondary px-3 text-xs font-medium text-secondary-foreground hover:bg-accent hover:text-foreground disabled:opacity-50"
+                        >
+                            <span x-text="voucherBusy ? 'Memeriksa...' : 'Cek'"></span>
+                        </button>
+                    </div>
+                    <p x-show="voucherError" class="text-xs text-destructive" x-text="voucherError"></p>
+                </div>
+
+                <!-- Detail voucer ditemukan + verifikasi PIN keamanan member -->
+                <div x-show="member && voucherInfo && !voucher" class="flex flex-col gap-2">
+                    <div class="rounded border border-primary/30 bg-primary/5 p-2 flex flex-col gap-1">
+                        <div class="flex items-baseline justify-between gap-2">
+                            <span class="text-sm font-medium text-foreground" x-text="voucherInfo?.name"></span>
+                            <span class="shrink-0 text-[11px] tabular-nums text-muted-foreground" x-text="'Kode ' + voucherInfo?.code"></span>
+                        </div>
+                        <p class="text-xs font-semibold text-primary" x-text="voucherInfo?.benefit"></p>
+                        <p class="text-[11px] min-w-0 text-muted-foreground">
+                            Atas nama <span class="font-medium text-foreground" x-text="voucherInfo?.owner_name"></span> · diklaim
+                            <span class="tabular-nums" x-text="voucherInfo?.points_spent"></span> poin · berlaku sampai
+                            <span class="tabular-nums" x-text="voucherInfo?.expires_label"></span>
+                        </p>
+                    </div>
+
+                    <label class="text-[11px] font-medium text-muted-foreground" for="voucher-pin-input">
+                        PIN Keamanan dari <span x-text="voucherInfo?.owner_name"></span> (member memasukkan PIN sendiri)
+                    </label>
+                    <input
+                        id="voucher-pin-input"
+                        type="password"
+                        inputmode="numeric"
+                        maxlength="6"
+                        x-model="voucherPin"
+                        @keydown.enter.prevent="useVoucher"
+                        placeholder="6 digit"
+                        aria-label="PIN Keamanan member"
+                        class="h-9 w-full rounded border border-input bg-card px-2.5 text-sm tracking-[0.3em] tabular-nums text-foreground placeholder:tracking-normal placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                    >
+
+                    <div class="flex gap-1.5">
+                        <button
+                            type="button"
+                            @click="useVoucher"
+                            class="h-9 flex-1 rounded bg-primary px-3 text-xs font-medium text-primary-foreground hover:bg-primary/90"
+                        >
+                            Gunakan Voucer
+                        </button>
+                        <button type="button" @click="voucherInfo = null; voucherPin = ''" class="h-9 rounded px-3 text-xs text-muted-foreground hover:text-foreground underline underline-offset-2">
+                            Batal
+                        </button>
+                    </div>
+                    <p x-show="voucherError" class="text-xs text-destructive" x-text="voucherError"></p>
+                </div>
+
+                <!-- Voucer terpasang di transaksi -->
+                <div x-show="voucher" class="rounded border border-primary/30 bg-primary/5 p-2 flex flex-col gap-1">
+                    <div class="flex items-baseline justify-between gap-2">
+                        <span class="text-sm font-medium text-foreground" x-text="voucher?.name"></span>
+                        <span class="shrink-0 text-[11px] tabular-nums text-muted-foreground" x-text="'Kode ' + voucher?.code"></span>
+                    </div>
+                    <p class="text-xs font-semibold text-primary" x-text="voucher?.benefit"></p>
+                    <p class="text-[11px] text-muted-foreground">Siap dipakai saat pembayaran. PIN Keamanan sudah diverifikasi kasir.</p>
+                </div>
+            </div>
+
             <!-- Ringkasan Biaya -->
             <div class="border-t border-border pt-3 flex flex-col gap-1.5 text-xs">
                 <div class="flex justify-between text-muted-foreground">
@@ -327,6 +426,10 @@
                 <div class="flex justify-between text-muted-foreground">
                     <span>Pajak</span>
                     <span class="tabular-nums" x-text="rupiah(tax)"></span>
+                </div>
+                <div x-show="voucherAmount > 0" class="flex justify-between text-muted-foreground">
+                    <span>Potongan voucer</span>
+                    <span class="tabular-nums text-primary" x-text="'- ' + rupiah(voucherAmount)"></span>
                 </div>
                 <div class="flex justify-between pt-1 border-t border-border/60 text-sm font-semibold text-foreground">
                     <span>Total Tagihan</span>

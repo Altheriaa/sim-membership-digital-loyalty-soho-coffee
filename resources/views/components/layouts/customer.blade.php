@@ -48,6 +48,7 @@
             <div
                 x-cloak
                 x-show="$store.pwa?.canPrompt && !$store.pwa?.dismissed"
+                data-print-hide
                 class="mx-4 mt-3 flex items-center justify-between gap-3 rounded-xl border border-primary/30 bg-linear-to-r from-primary/15 via-card to-primary/5 p-3 text-xs shadow-xs"
             >
                 <div class="flex items-center gap-2.5 min-w-0">
@@ -148,6 +149,5 @@
             @endif
         </div>
         <x-pwa-modals />
-        @aprilScripts
     </body>
 </html>

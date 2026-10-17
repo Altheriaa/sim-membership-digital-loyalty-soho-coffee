@@ -20,6 +20,7 @@ use App\Http\Controllers\Customer\VoucherWalletController as CustomerVoucherWall
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\Pos\MemberController;
 use App\Http\Controllers\Pos\OrderController;
+use App\Http\Controllers\Pos\VoucherController as PosVoucherController;
 use App\Http\Controllers\PosController;
 use Illuminate\Support\Facades\Route;
 
@@ -64,6 +65,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/', PosController::class)->name('index');
         Route::get('members/lookup', [MemberController::class, 'lookup'])->name('members.lookup');
         Route::post('members', [MemberController::class, 'store'])->name('members.store');
+        Route::get('vouchers/lookup', [PosVoucherController::class, 'lookup'])->name('vouchers.lookup');
         Route::post('orders', [OrderController::class, 'store'])->name('orders.store');
         Route::get('orders/{order}', [OrderController::class, 'show'])->name('orders.show');
     });

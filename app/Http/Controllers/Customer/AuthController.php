@@ -45,14 +45,14 @@ class AuthController extends Controller
             'customer_otp_phone' => $normalized,
             'customer_otp_code' => $otp,
             'customer_otp_expires' => $expiresAt->timestamp,
+            'customer_otp_attempts' => 0,
+            'otp_simulated' => [
+                'phone' => PhoneNumber::display($normalized),
+                'code' => $otp,
+            ],
         ]);
 
-        $displayPhone = PhoneNumber::display($normalized);
-
-        return redirect()->route('customer.otp')->with('otp_simulated', [
-            'phone' => $displayPhone,
-            'code' => $otp,
-        ]);
+        return redirect()->route('customer.otp');
     }
 
     public function showOtp(): View|RedirectResponse
@@ -80,14 +80,32 @@ class AuthController extends Controller
         $expires = session('customer_otp_expires');
 
         if (! $storedPhone || ! $storedCode || ! $expires || Carbon::now()->timestamp > $expires) {
+            session()->forget(['customer_otp_phone', 'customer_otp_code', 'customer_otp_expires', 'customer_otp_attempts', 'otp_simulated']);
+
             return redirect()->route('customer.login')->withErrors([
                 'phone' => 'Kode OTP telah kedaluwarsa. Silakan masukkan nomor Anda kembali.',
             ]);
         }
 
+        $attempts = (int) session('customer_otp_attempts', 0);
+
         if ($request->input('otp') !== $storedCode) {
+            $attempts++;
+
+            if ($attempts >= 5) {
+                session()->forget(['customer_otp_phone', 'customer_otp_code', 'customer_otp_expires', 'customer_otp_attempts', 'otp_simulated']);
+
+                return redirect()->route('customer.login')->withErrors([
+                    'phone' => 'Terlalu banyak percobaan salah. Silakan minta kode OTP baru.',
+                ]);
+            }
+
+            session(['customer_otp_attempts' => $attempts]);
+
+            $attemptsLeft = 5 - $attempts;
+
             return back()->withErrors([
-                'otp' => 'Kode OTP yang Anda masukkan salah. Periksa kembali SMS/WhatsApp Anda.',
+                'otp' => "Kode OTP yang Anda masukkan salah. Sisa percobaan: {$attemptsLeft} kali.",
             ]);
         }
 
@@ -100,7 +118,9 @@ class AuthController extends Controller
             ]
         );
 
-        session()->forget(['customer_otp_phone', 'customer_otp_code', 'customer_otp_expires']);
+        session()->forget(['customer_otp_phone', 'customer_otp_code', 'customer_otp_expires', 'customer_otp_attempts', 'otp_simulated']);
+
+        session()->regenerate();
 
         Auth::guard('customer')->login($member);
 

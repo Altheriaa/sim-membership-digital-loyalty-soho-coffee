@@ -68,12 +68,14 @@ class PinController extends Controller
         session([
             'reset_pin_otp' => $otp,
             'reset_pin_expires' => $expiresAt->timestamp,
+            'reset_pin_attempts' => 0,
+            'otp_simulated' => [
+                'phone' => $member->displayPhone(),
+                'code' => $otp,
+            ],
         ]);
 
-        return redirect()->route('customer.pin.reset.form')->with('otp_simulated', [
-            'phone' => $member->displayPhone(),
-            'code' => $otp,
-        ]);
+        return redirect()->route('customer.pin.reset.form');
     }
 
     public function showResetForm(): View|RedirectResponse
@@ -110,19 +112,37 @@ class PinController extends Controller
         $expires = session('reset_pin_expires');
 
         if (! $storedCode || ! $expires || Carbon::now()->timestamp > $expires) {
+            session()->forget(['reset_pin_otp', 'reset_pin_expires', 'reset_pin_attempts', 'otp_simulated']);
+
             return redirect()->route('customer.pin.show')->withErrors([
                 'error' => 'Sesi OTP reset telah kedaluwarsa. Silakan ajukan reset kembali.',
             ]);
         }
 
+        $attempts = (int) session('reset_pin_attempts', 0);
+
         if ($request->input('otp') !== $storedCode) {
+            $attempts++;
+
+            if ($attempts >= 5) {
+                session()->forget(['reset_pin_otp', 'reset_pin_expires', 'reset_pin_attempts', 'otp_simulated']);
+
+                return redirect()->route('customer.pin.show')->withErrors([
+                    'error' => 'Terlalu banyak percobaan salah. Silakan ajukan reset PIN kembali.',
+                ]);
+            }
+
+            session(['reset_pin_attempts' => $attempts]);
+
+            $attemptsLeft = 5 - $attempts;
+
             return back()->withErrors([
-                'otp' => 'Kode OTP verifikasi salah.',
+                'otp' => "Kode OTP verifikasi salah. Sisa percobaan: {$attemptsLeft} kali.",
             ]);
         }
 
         $member->setPin($request->input('pin'));
-        session()->forget(['reset_pin_otp', 'reset_pin_expires']);
+        session()->forget(['reset_pin_otp', 'reset_pin_expires', 'reset_pin_attempts', 'otp_simulated']);
 
         return redirect()->route('customer.pin.show')->with('status', 'PIN Keamanan berhasil direset dan diperbarui.');
     }

@@ -5,6 +5,7 @@ namespace App\Models;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Str;
@@ -12,6 +13,9 @@ use Illuminate\Support\Str;
 #[Fillable(['member_id', 'voucher_id', 'code', 'status', 'points_spent', 'expires_at', 'used_at', 'order_id'])]
 class MemberVoucher extends Model
 {
+    /** @use HasFactory<MemberVoucherFactory> */
+    use HasFactory;
+
     /**
      * @return array<string, string>
      */
@@ -61,6 +65,14 @@ class MemberVoucher extends Model
         return $this->status === 'active' && $this->expires_at->isPast();
     }
 
+    /**
+     * A voucher the cashier can accept right now: active status and not expired.
+     */
+    public function isRedeemable(): bool
+    {
+        return $this->status === 'active' && $this->expires_at->isFuture();
+    }
+
     public function statusLabel(): string
     {
         if ($this->status === 'used') {
@@ -100,7 +112,7 @@ class MemberVoucher extends Model
     public static function generateCode(): string
     {
         do {
-            $code = 'KOP-'.strtoupper(Str::random(4));
+            $code = 'KOP-'.strtoupper(Str::random(6));
         } while (static::query()->where('code', $code)->exists());
 
         return $code;

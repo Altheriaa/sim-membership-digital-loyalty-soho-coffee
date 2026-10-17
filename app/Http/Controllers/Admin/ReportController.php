@@ -15,6 +15,16 @@ class ReportController extends Controller
 {
     public function index(Request $request): View
     {
+        $request->validate([
+            'period' => ['sometimes', 'in:today,yesterday,7_days,this_month,custom,30_days'],
+            'start_date' => ['nullable', 'date_format:Y-m-d'],
+            'end_date' => ['nullable', 'date_format:Y-m-d', 'after_or_equal:start_date'],
+        ], [
+            'period.in' => 'Periode laporan tidak valid.',
+            'start_date.date_format' => 'Tanggal mulai harus berformat tanggal (YYYY-MM-DD).',
+            'end_date.date_format' => 'Tanggal akhir harus berformat tanggal (YYYY-MM-DD).',
+        ]);
+
         $period = $request->query('period', '30_days');
         $now = Carbon::now();
 

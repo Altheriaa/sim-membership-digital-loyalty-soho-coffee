@@ -88,6 +88,12 @@
                         <span class="tabular-nums text-foreground">{{ Rupiah::format($order->tax_amount) }}</span>
                     </div>
                 @endif
+                @if ($order->discount_amount > 0)
+                    <div class="flex justify-between text-muted-foreground">
+                        <span>Potongan voucer ({{ $order->voucher?->code }})</span>
+                        <span class="tabular-nums text-foreground">- {{ Rupiah::format($order->discount_amount) }}</span>
+                    </div>
+                @endif
                 <div class="flex justify-between pt-1 border-t border-border/60 font-serif text-base font-bold text-foreground">
                     <span>Total</span>
                     <span class="tabular-nums text-primary">{{ Rupiah::format($order->total) }}</span>
@@ -158,6 +164,11 @@
                     color: #000 !important;
                     max-width: 320px;
                     margin: 0 auto;
+                }
+                .receipt-paper,
+                .receipt-paper * {
+                    color: #000 !important;
+                    border-color: #e5e5e5 !important;
                 }
             }
         </style>

@@ -12,8 +12,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 #[Fillable([
-    'cashier_id', 'member_id', 'subtotal', 'tax_percent', 'tax_amount', 'total',
-    'payment_method', 'cash_received', 'change_due', 'points_earned', 'member_points_after',
+    'cashier_id', 'member_id', 'subtotal', 'tax_percent', 'tax_amount', 'discount_amount', 'total',
+    'payment_method', 'cash_received', 'change_due', 'points_earned', 'member_points_after', 'voucher_id',
 ])]
 class Order extends Model
 {
@@ -29,6 +29,7 @@ class Order extends Model
             'subtotal' => 'integer',
             'tax_percent' => 'decimal:2',
             'tax_amount' => 'integer',
+            'discount_amount' => 'integer',
             'total' => 'integer',
             'payment_method' => PaymentMethod::class,
             'cash_received' => 'integer',
@@ -52,6 +53,14 @@ class Order extends Model
     public function member(): BelongsTo
     {
         return $this->belongsTo(Member::class);
+    }
+
+    /**
+     * @return BelongsTo<MemberVoucher, $this>
+     */
+    public function voucher(): BelongsTo
+    {
+        return $this->belongsTo(MemberVoucher::class);
     }
 
     /**

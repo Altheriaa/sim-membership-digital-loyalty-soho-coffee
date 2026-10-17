@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\Rupiah;
 use App\VoucherType;
 use Database\Factories\VoucherFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -41,6 +42,29 @@ class Voucher extends Model
     public function menuItem(): BelongsTo
     {
         return $this->belongsTo(MenuItem::class);
+    }
+
+    /**
+     * The rupiah value this voucher takes off an order: the menu item price for
+     * a free item, otherwise the configured discount amount.
+     */
+    public function benefitAmount(): int
+    {
+        return (int) match ($this->type) {
+            VoucherType::FreeItem => $this->menuItem?->price ?? 0,
+            VoucherType::DiscountAmount => $this->discount_amount ?? 0,
+        };
+    }
+
+    /**
+     * The benefit a person reads on labels: what the voucher gives (admin list and kasir share this).
+     */
+    public function benefitLabel(): string
+    {
+        return match ($this->type) {
+            VoucherType::FreeItem => 'Gratis: '.$this->menuItem?->name,
+            VoucherType::DiscountAmount => 'Diskon '.Rupiah::format((int) $this->discount_amount),
+        };
     }
 
     /**

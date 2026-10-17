@@ -39,8 +39,8 @@
         </a>
     </slot:header>
 
-    <slot:content class="px-2 group-data-[collapsible=icon]:px-1.5">
-        <nav aria-label="Navigasi utama" class="flex flex-col gap-1.5">
+    <slot:content class="px-2 pb-4 group-data-[collapsible=icon]:px-1.5 group-data-[collapsible=icon]:pb-3.5">
+        <nav aria-label="Navigasi utama" class="flex flex-col gap-1.5 pb-1">
             <april:sidebar-menu class="gap-1.5">
                 <april:sidebar-menu-item>
                     <april:sidebar-menu-button-link href="{{ route('admin.dashboard') }}"
@@ -55,7 +55,7 @@
             @foreach ($groups as $heading => $links)
                 @if (count($links) > 0)
                     <april:sidebar-group class="p-1 group-data-[collapsible=icon]:p-0">
-                        <div class="hidden my-2 mx-auto h-px w-8 bg-border/70 group-data-[collapsible=icon]:block"
+                        <div class="hidden my-2.5 mx-auto h-px w-8 bg-border/80 group-data-[collapsible=icon]:block"
                             aria-hidden="true"></div>
                         <april:sidebar-group-label
                             class="group-data-[collapsible=icon]:hidden">{{ $heading }}</april:sidebar-group-label>
@@ -80,7 +80,7 @@
         </nav>
     </slot:content>
 
-    <slot:footer class="border-t border-sidebar-border p-2.5 group-data-[collapsible=icon]:p-2 flex flex-col gap-1.5">
+    <slot:footer class="border-t border-sidebar-border p-3 group-data-[collapsible=icon]:px-2 group-data-[collapsible=icon]:pt-3.5 group-data-[collapsible=icon]:pb-3 flex flex-col gap-2">
         <div class="flex flex-col px-2 pb-1 group-data-[collapsible=icon]:hidden">
             <span class="truncate text-sm font-medium">{{ $user->name }}</span>
             <span class="text-xs text-muted-foreground">{{ $user->role->label() }}</span>

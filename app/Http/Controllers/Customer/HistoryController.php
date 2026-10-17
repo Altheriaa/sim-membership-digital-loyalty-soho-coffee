@@ -17,8 +17,8 @@ class HistoryController extends Controller
         $member = Auth::guard('customer')->user();
         $tab = $request->query('tab', 'orders');
 
-        $orders = $member->orders()->with(['cashier'])->latest('id')->paginate(10, ['*'], 'orders_page');
-        $pointTransactions = $member->pointTransactions()->with('order')->latest('id')->paginate(15, ['*'], 'points_page');
+        $orders = $member->orders()->with(['cashier'])->latest('id')->paginate(10, ['*'], 'orders_page')->withQueryString();
+        $pointTransactions = $member->pointTransactions()->with('order')->latest('id')->paginate(15, ['*'], 'points_page')->withQueryString();
 
         return view('customer.history.index', [
             'member' => $member,

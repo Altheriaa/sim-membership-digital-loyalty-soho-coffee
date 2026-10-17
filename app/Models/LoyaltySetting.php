@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 
 #[Fillable(['spend_per_point', 'point_value', 'tax_percent'])]
 class LoyaltySetting extends Model
@@ -27,11 +28,17 @@ class LoyaltySetting extends Model
     }
 
     /**
-     * The single settings row, created with the defaults on first use.
+     * The single settings row, created with the defaults on first use. Locking
+     * inside a transaction keeps two orders on a fresh database from creating
+     * two settings rows.
      */
     public static function current(): self
     {
-        return static::query()->first() ?? static::query()->create(self::DEFAULTS);
+        return DB::transaction(function (): self {
+            $settings = static::query()->lockForUpdate()->first();
+
+            return $settings ?? static::create(self::DEFAULTS);
+        });
     }
 
     /**

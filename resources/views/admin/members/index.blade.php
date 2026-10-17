@@ -1,3 +1,4 @@
+@use('App\Models\Tier')
 @use('App\Support\Rupiah')
 
 <x-layouts.admin title="Member">
@@ -72,7 +73,7 @@
                     <tbody class="divide-y divide-border">
                         @foreach ($members as $member)
                             @php
-                                $tier = $member->tier();
+                                $tier = Tier::forSpendFrom($tiers, $member->lifetime_spend);
                             @endphp
                             <tr class="hover:bg-accent/40 transition-colors">
                                 <td class="px-4 py-3 sm:px-6">
