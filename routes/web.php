@@ -26,6 +26,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::prefix('app')->name('customer.')->group(function () {
     Route::get('/login', [CustomerAuthController::class, 'showLogin'])->name('login');
+    Route::get('/check-phone', [CustomerAuthController::class, 'checkPhone'])->name('check-phone');
     Route::post('/login', [CustomerAuthController::class, 'sendOtp'])->name('send-otp');
     Route::get('/otp', [CustomerAuthController::class, 'showOtp'])->name('otp');
     Route::post('/otp', [CustomerAuthController::class, 'verifyOtp'])->name('verify-otp');

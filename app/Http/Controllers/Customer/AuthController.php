@@ -7,6 +7,7 @@ use App\Models\Member;
 use App\Support\PhoneNumber;
 use Carbon\Carbon;
 use Illuminate\Contracts\View\View;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -20,6 +21,23 @@ class AuthController extends Controller
         }
 
         return view('customer.auth.login');
+    }
+
+    public function checkPhone(Request $request): JsonResponse
+    {
+        $raw = (string) $request->query('phone', '');
+        $normalized = PhoneNumber::normalize($raw);
+
+        if (! PhoneNumber::isValid($normalized)) {
+            return response()->json(['valid' => false, 'registered' => false]);
+        }
+
+        $exists = Member::query()->where('phone', $normalized)->exists();
+
+        return response()->json([
+            'valid' => true,
+            'registered' => $exists,
+        ]);
     }
 
     public function sendOtp(Request $request): RedirectResponse
@@ -38,11 +56,30 @@ class AuthController extends Controller
             ]);
         }
 
+        $member = Member::query()->where('phone', $normalized)->first();
+
+        if (! $member && ! $request->filled('name')) {
+            return back()->withInput()->with([
+                'is_new_member' => true,
+                'status_message' => 'Nomor WhatsApp belum terdaftar. Silakan masukkan nama Anda untuk pendaftaran member baru.',
+            ]);
+        }
+
+        if (! $member) {
+            $request->validate([
+                'name' => ['required', 'string', 'max:50'],
+            ], [
+                'name.required' => 'Nama pelanggan wajib diisi untuk pendaftaran member baru.',
+                'name.max' => 'Nama pelanggan tidak boleh lebih dari 50 karakter.',
+            ]);
+        }
+
         $otp = (string) random_int(1000, 9999);
         $expiresAt = Carbon::now()->addMinutes(5);
 
         session([
             'customer_otp_phone' => $normalized,
+            'customer_otp_name' => $member ? $member->name : trim($request->input('name')),
             'customer_otp_code' => $otp,
             'customer_otp_expires' => $expiresAt->timestamp,
             'customer_otp_attempts' => 0,
@@ -80,7 +117,7 @@ class AuthController extends Controller
         $expires = session('customer_otp_expires');
 
         if (! $storedPhone || ! $storedCode || ! $expires || Carbon::now()->timestamp > $expires) {
-            session()->forget(['customer_otp_phone', 'customer_otp_code', 'customer_otp_expires', 'customer_otp_attempts', 'otp_simulated']);
+            session()->forget(['customer_otp_phone', 'customer_otp_name', 'customer_otp_code', 'customer_otp_expires', 'customer_otp_attempts', 'otp_simulated']);
 
             return redirect()->route('customer.login')->withErrors([
                 'phone' => 'Kode OTP telah kedaluwarsa. Silakan masukkan nomor Anda kembali.',
@@ -93,7 +130,7 @@ class AuthController extends Controller
             $attempts++;
 
             if ($attempts >= 5) {
-                session()->forget(['customer_otp_phone', 'customer_otp_code', 'customer_otp_expires', 'customer_otp_attempts', 'otp_simulated']);
+                session()->forget(['customer_otp_phone', 'customer_otp_name', 'customer_otp_code', 'customer_otp_expires', 'customer_otp_attempts', 'otp_simulated']);
 
                 return redirect()->route('customer.login')->withErrors([
                     'phone' => 'Terlalu banyak percobaan salah. Silakan minta kode OTP baru.',
@@ -109,16 +146,18 @@ class AuthController extends Controller
             ]);
         }
 
+        $storedName = session('customer_otp_name');
+
         $member = Member::query()->firstOrCreate(
             ['phone' => $storedPhone],
             [
-                'name' => 'Pelanggan '.substr($storedPhone, -4),
+                'name' => $storedName ?: ('Pelanggan '.substr($storedPhone, -4)),
                 'points_balance' => 0,
                 'lifetime_spend' => 0,
             ]
         );
 
-        session()->forget(['customer_otp_phone', 'customer_otp_code', 'customer_otp_expires', 'customer_otp_attempts', 'otp_simulated']);
+        session()->forget(['customer_otp_phone', 'customer_otp_name', 'customer_otp_code', 'customer_otp_expires', 'customer_otp_attempts', 'otp_simulated']);
 
         session()->regenerate();
 
