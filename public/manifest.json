@@ -5,10 +5,16 @@
   "start_url": "/app",
   "scope": "/",
   "display": "standalone",
-  "background_color": "#f6f4ed",
+  "background_color": "#1c325c",
   "theme_color": "#1c325c",
   "orientation": "portrait-primary",
   "icons": [
+    {
+      "src": "/icons/Logo.png",
+      "sizes": "716x757",
+      "type": "image/png",
+      "purpose": "any"
+    },
     {
       "src": "/icons/icon-192x192.png",
       "sizes": "192x192",
@@ -26,12 +32,6 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
-    },
-    {
-      "src": "/icons/icon.svg",
-      "sizes": "512x512",
-      "type": "image/svg+xml",
-      "purpose": "any"
     }
   ],
   "shortcuts": [
@@ -42,8 +42,8 @@
       "url": "/app",
       "icons": [
         {
-          "src": "/icons/icon-192x192.png",
-          "sizes": "192x192"
+          "src": "/icons/Logo.png",
+          "sizes": "716x757"
         }
       ]
     },
@@ -54,8 +54,8 @@
       "url": "/pos",
       "icons": [
         {
-          "src": "/icons/icon-192x192.png",
-          "sizes": "192x192"
+          "src": "/icons/Logo.png",
+          "sizes": "716x757"
         }
       ]
     }

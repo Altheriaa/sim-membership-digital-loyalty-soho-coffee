@@ -1,6 +1,7 @@
-const CACHE_NAME = 'soho-coffee-v2';
+const CACHE_NAME = 'soho-coffee-v3';
 const STATIC_ASSETS = [
     '/manifest.json',
+    '/icons/Logo.png',
     '/icons/icon-192x192.png',
     '/icons/icon-512x512.png',
     '/icons/apple-touch-icon.png',

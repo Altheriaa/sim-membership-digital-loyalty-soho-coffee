@@ -86,6 +86,16 @@
             <span class="text-xs text-muted-foreground">{{ $user->role->label() }}</span>
         </div>
 
+        <button type="button"
+            x-cloak
+            x-show="$store.pwa?.canPrompt"
+            x-on:click="$store.pwa.install()"
+            class="flex h-11 w-full items-center gap-3 rounded-xl px-2.5 text-sm text-primary transition-colors hover:bg-primary/10 group-data-[collapsible=icon]:size-11! group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:p-0! group-data-[collapsible=icon]:mx-auto group-data-[collapsible=icon]:rounded-xl [&>svg]:size-5! group-data-[collapsible=icon]:[&>svg]:size-5.5!"
+            title="Install Soho Coffee ke Smartphone">
+            <x-lucide-download class="size-5 shrink-0 group-data-[collapsible=icon]:size-5.5" />
+            <span class="group-data-[collapsible=icon]:hidden font-medium">Install Aplikasi</span>
+        </button>
+
         <button type="button" x-on:click="sidebar.toggle()"
             class="flex h-11 w-full items-center gap-3 rounded-xl px-2.5 text-sm text-muted-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-foreground group-data-[collapsible=icon]:size-11! group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:p-0! group-data-[collapsible=icon]:mx-auto group-data-[collapsible=icon]:rounded-xl [&>svg]:size-5! group-data-[collapsible=icon]:[&>svg]:size-5.5!"
             :title="sidebar.open ? 'Kecilkan sidebar' : 'Perluas sidebar'">

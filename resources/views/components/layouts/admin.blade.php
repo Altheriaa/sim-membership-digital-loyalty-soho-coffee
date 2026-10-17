@@ -19,9 +19,23 @@
                         <april:sidebar-trigger class="size-11 shrink-0 md:size-9" aria-label="Buka atau tutup sidebar" />
                         <h1 class="truncate font-serif text-2xl font-medium tracking-tight sm:text-3xl">{{ $title }}</h1>
                     </div>
-                    @isset($actions)
-                        <div class="flex shrink-0 items-center gap-2">{{ $actions }}</div>
-                    @endisset
+                    <div class="flex shrink-0 items-center gap-2">
+                        @isset($actions)
+                            {{ $actions }}
+                        @endisset
+                        <button
+                            type="button"
+                            x-cloak
+                            x-show="$store.pwa?.canPrompt"
+                            x-on:click="$store.pwa.install()"
+                            title="Pasang Aplikasi ke Smartphone"
+                            aria-label="Pasang Aplikasi Soho Coffee"
+                            class="flex h-9 items-center gap-1.5 rounded-md border border-primary/30 bg-primary/10 px-3 text-xs font-semibold text-primary hover:bg-primary/20 transition-colors shadow-xs"
+                        >
+                            <x-lucide-download class="size-3.5" />
+                            <span>Install App</span>
+                        </button>
+                    </div>
                 </header>
 
                 <div id="main-content" tabindex="-1" class="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-6 p-4 outline-none sm:gap-8 sm:p-8">
@@ -35,5 +49,6 @@
                 </footer>
             </april:sidebar-inset>
         </april:sidebar-layout>
+        <x-pwa-modals />
     </body>
 </html>

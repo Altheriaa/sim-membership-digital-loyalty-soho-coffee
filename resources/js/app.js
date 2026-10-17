@@ -13,13 +13,15 @@ Alpine.store('theme', createTheme(window));
 Alpine.store('pwa', {
     deferredPrompt: null,
     isIOS: false,
-    isStandalone: false,
+    canPrompt: true,
     showIOSModal: false,
     showAndroidModal: false,
     dismissed: false,
 
     init() {
         this.isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+        this.canPrompt = !this.isStandalone;
+
         const ua = window.navigator.userAgent.toLowerCase();
         this.isIOS = /iphone|ipad|ipod/.test(ua) || (window.navigator.platform === 'MacIntel' && window.navigator.maxTouchPoints > 1);
 
@@ -40,14 +42,11 @@ Alpine.store('pwa', {
         window.addEventListener('appinstalled', () => {
             this.deferredPrompt = null;
             this.isStandalone = true;
+            this.canPrompt = false;
             this.dismissed = true;
             this.showIOSModal = false;
             this.showAndroidModal = false;
         });
-    },
-
-    get canPrompt() {
-        return !this.isStandalone;
     },
 
     dismiss() {

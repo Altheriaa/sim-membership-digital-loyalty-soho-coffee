@@ -16,7 +16,18 @@
         <april:button type="submit" size="none" class="h-11 px-4">Masuk</april:button>
     </form>
 
-    <div class="flex justify-end">
+    <div class="flex items-center justify-between">
+        <button
+            type="button"
+            x-cloak
+            x-show="$store.pwa?.canPrompt"
+            x-on:click="$store.pwa.install()"
+            class="inline-flex items-center gap-1.5 text-xs font-semibold text-primary hover:underline"
+            title="Pasang Aplikasi ke Smartphone"
+        >
+            <x-lucide-download class="size-3.5" />
+            <span>Install Soho Coffee</span>
+        </button>
         <x-theme-toggle />
     </div>
 </x-layouts.guest>
