@@ -2,53 +2,70 @@
 
 <!DOCTYPE html>
 <html lang="id">
-    <head>
-        <x-head :title="$title" />
-    </head>
-    <body class="bg-background font-sans text-foreground antialiased">
-        <a href="#main-content" class="sr-only z-50 rounded-md bg-primary px-4 py-2 text-primary-foreground focus:not-sr-only focus:fixed focus:top-4 focus:left-4">
-            Lewati ke konten utama
-        </a>
 
-        <april:sidebar-layout class="h-svh overflow-hidden" width="16rem" width-icon="4.75rem">
-            <x-admin-sidebar />
+<head>
+    <x-head :title="$title" />
+</head>
 
-            <april:sidebar-inset class="overflow-y-auto">
-                <header class="sticky top-0 z-20 flex min-h-16 shrink-0 items-center justify-between gap-3 border-b border-border bg-background px-4 sm:px-8">
+<body class="bg-background font-sans text-foreground antialiased">
+    <a href="#main-content"
+        class="sr-only z-50 rounded-md bg-primary px-4 py-2 text-primary-foreground focus:not-sr-only focus:fixed focus:top-4 focus:left-4">
+        Lewati ke konten utama
+    </a>
+
+    <april:sidebar-layout class="h-svh overflow-hidden" width="16rem" width-icon="4.75rem">
+        <x-admin-sidebar />
+
+        <april:sidebar-inset class="overflow-y-auto">
+            <header
+                class="sticky top-0 z-20 flex min-h-16 shrink-0 items-center justify-between gap-3 border-b border-border bg-background px-4 sm:px-8">
+                <div class="flex min-w-0 items-center gap-3">
+                    <button type="button" x-on:click="sidebar.toggle()"
+                        class="flex size-9 items-center justify-center text-muted-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                        aria-label="Buka atau tutup sidebar">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="size-4" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect width="18" height="18" x="3" y="3" rx="2" />
+                            <path d="M9 3v18" />
+                        </svg>
+                        <span class="sr-only">Buka atau tutup sidebar</span>
+                    </button>
+                    <x-lucide-chevron-right class="hidden size-3.5 shrink-0 text-muted-foreground/40 sm:inline" />
                     <div class="flex min-w-0 items-center gap-2">
-                        <april:sidebar-trigger class="size-11 shrink-0 md:size-9" aria-label="Buka atau tutup sidebar" />
-                        <h1 class="truncate font-serif text-2xl font-medium tracking-tight sm:text-3xl">{{ $title }}</h1>
+                        <span
+                            class="hidden text-xs font-semibold uppercase tracking-wider text-muted-foreground/70 sm:inline">{{ Auth::user()->role }}</span>
+                        <x-lucide-chevron-right class="hidden size-3.5 shrink-0 text-muted-foreground/40 sm:inline" />
+                        <span
+                            class="text-xs font-semibold uppercase tracking-wider text-muted-foreground/70">{{ $title }}</span>
                     </div>
-                    <div class="flex shrink-0 items-center gap-2">
-                        @isset($actions)
-                            {{ $actions }}
-                        @endisset
-                        <button
-                            type="button"
-                            x-cloak
-                            x-show="$store.pwa?.canPrompt"
-                            x-on:click="$store.pwa.install()"
-                            title="Pasang Aplikasi ke Smartphone"
-                            aria-label="Pasang Aplikasi Soho Coffee"
-                            class="flex h-9 items-center gap-1.5 rounded-md border border-primary/30 bg-primary/10 px-3 text-xs font-semibold text-primary hover:bg-primary/20 transition-colors shadow-xs"
-                        >
-                            <x-lucide-download class="size-3.5" />
-                            <span>Install App</span>
-                        </button>
-                    </div>
-                </header>
-
-                <div id="main-content" tabindex="-1" class="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-6 p-4 outline-none sm:gap-8 sm:p-8">
-                    <x-alert-summary />
-                    {{ $slot }}
                 </div>
+                <div class="flex shrink-0 items-center gap-2">
+                    @isset($actions)
+                        {{ $actions }}
+                    @endisset
+                    <button type="button" x-cloak x-show="$store.pwa?.canPrompt" x-on:click="$store.pwa.install()"
+                        title="Pasang Aplikasi ke Smartphone" aria-label="Pasang Aplikasi Soho Coffee"
+                        class="flex h-9 items-center gap-1.5 rounded-md border border-primary/30 bg-primary/10 px-3 text-xs font-semibold text-primary hover:bg-primary/20 transition-colors shadow-xs">
+                        <x-lucide-download class="size-3.5" />
+                        <span>Install App</span>
+                    </button>
+                </div>
+            </header>
 
-                <footer class="flex flex-wrap items-center justify-between gap-3 border-t border-border px-4 py-3 text-xs text-muted-foreground sm:px-8">
-                    <p>{{ config('app.name') }} &copy; {{ now()->year }}</p>
-                    <x-theme-toggle />
-                </footer>
-            </april:sidebar-inset>
-        </april:sidebar-layout>
-        <x-pwa-modals />
-    </body>
+            <div id="main-content" tabindex="-1"
+                class="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-6 p-4 outline-none sm:gap-8 sm:p-8">
+                <x-alert-summary />
+                {{ $slot }}
+            </div>
+
+            <footer
+                class="flex flex-wrap items-center justify-between gap-3 border-t border-border px-4 py-3 text-xs text-muted-foreground sm:px-8">
+                <p>{{ config('app.name') }} &copy; {{ now()->year }}</p>
+                <x-theme-toggle />
+            </footer>
+        </april:sidebar-inset>
+    </april:sidebar-layout>
+    <x-pwa-modals />
+</body>
+
 </html>

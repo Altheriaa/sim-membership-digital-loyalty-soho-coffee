@@ -1,8 +1,7 @@
 <x-layouts.guest title="Masuk">
     <header class="flex flex-col gap-1">
-        <p class="font-serif text-xl font-semibold">{{ config('app.name') }}</p>
-        <h1 class="font-serif text-3xl font-medium tracking-tight">Masuk</h1>
-        <p class="text-sm text-muted-foreground">Untuk admin, owner, dan kasir.</p>
+        <p class="font-serif text-2xl font-semibold">{{ config('app.name') }}</p>
+        <p class="text-sm text-muted-foreground">Masuk sebagai Admin, Owner, atau Kasir</p>
     </header>
 
     <form method="POST" action="{{ route('login') }}"
@@ -17,14 +16,9 @@
     </form>
 
     <div class="flex items-center justify-between">
-        <button
-            type="button"
-            x-cloak
-            x-show="$store.pwa?.canPrompt"
-            x-on:click="$store.pwa.install()"
+        <button type="button" x-cloak x-show="$store.pwa?.canPrompt" x-on:click="$store.pwa.install()"
             class="inline-flex items-center gap-1.5 text-xs font-semibold text-primary hover:underline"
-            title="Pasang Aplikasi ke Smartphone"
-        >
+            title="Pasang Aplikasi ke Smartphone">
             <x-lucide-download class="size-3.5" />
             <span>Install Soho Coffee</span>
         </button>

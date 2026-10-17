@@ -30,7 +30,8 @@
             title="{{ config('app.name') }}">
             <span
                 class="flex size-9 shrink-0 items-center justify-center rounded-xl bg-[#1c325c] p-1.5 shadow-xs ring-1 ring-black/10 dark:ring-white/10 group-data-[collapsible=icon]:size-10 group-data-[collapsible=icon]:p-2">
-                <img src="{{ asset('icons/Logo.png') }}" alt="{{ config('app.name') }}" class="size-full object-contain">
+                <img src="{{ asset('icons/Logo.png') }}" alt="{{ config('app.name') }}"
+                    class="size-full object-contain">
             </span>
             <div class="flex flex-col group-data-[collapsible=icon]:hidden min-w-0">
                 <span class="truncate font-serif text-base font-semibold leading-tight">{{ config('app.name') }}</span>
@@ -39,18 +40,20 @@
         </a>
     </slot:header>
 
-    <slot:content class="px-2 pb-4 group-data-[collapsible=icon]:px-1.5 group-data-[collapsible=icon]:pb-3.5">
+    <slot:content class="overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden px-2 pb-4 group-data-[collapsible=icon]:px-1.5 group-data-[collapsible=icon]:pb-3.5">
         <nav aria-label="Navigasi utama" class="flex flex-col gap-1.5 pb-1">
-            <april:sidebar-menu class="gap-1.5">
-                <april:sidebar-menu-item>
-                    <april:sidebar-menu-button-link href="{{ route('admin.dashboard') }}"
-                        :active="request()->routeIs('admin.dashboard')" title="Dashboard"
-                        class="h-11 gap-3 group-data-[collapsible=icon]:size-11! group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:p-0! group-data-[collapsible=icon]:mx-auto group-data-[collapsible=icon]:rounded-xl [&>svg]:size-5! group-data-[collapsible=icon]:[&>svg]:size-5.5!">
-                        <x-lucide-home class="size-5 shrink-0 group-data-[collapsible=icon]:size-5.5" />
-                        <span>Dashboard</span>
-                    </april:sidebar-menu-button-link>
-                </april:sidebar-menu-item>
-            </april:sidebar-menu>
+            <april:sidebar-group class="p-1 group-data-[collapsible=icon]:p-0">
+                <april:sidebar-menu class="gap-1.5">
+                    <april:sidebar-menu-item>
+                        <april:sidebar-menu-button-link href="{{ route('admin.dashboard') }}"
+                            :active="request()->routeIs('admin.dashboard')" title="Dashboard"
+                            class="h-11 gap-3 rounded-2xl group-data-[collapsible=icon]:size-11! group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:p-0! group-data-[collapsible=icon]:mx-auto group-data-[collapsible=icon]:rounded-xl [&>svg]:size-5! group-data-[collapsible=icon]:[&>svg]:size-5.5!">
+                            <x-lucide-home class="size-5 shrink-0 group-data-[collapsible=icon]:size-5.5" />
+                            <span>Dashboard</span>
+                        </april:sidebar-menu-button-link>
+                    </april:sidebar-menu-item>
+                </april:sidebar-menu>
+            </april:sidebar-group>
 
             @foreach ($groups as $heading => $links)
                 @if (count($links) > 0)
@@ -65,7 +68,7 @@
                                     <april:sidebar-menu-item>
                                         <april:sidebar-menu-button-link href="{{ route($link['route']) }}"
                                             :active="request()->routeIs($link['match'])" :title="$link['label']"
-                                            class="h-11 gap-3 group-data-[collapsible=icon]:size-11! group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:p-0! group-data-[collapsible=icon]:mx-auto group-data-[collapsible=icon]:rounded-xl [&>svg]:size-5! group-data-[collapsible=icon]:[&>svg]:size-5.5!">
+                                            class="h-11 gap-3 rounded-2xl group-data-[collapsible=icon]:size-11! group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:p-0! group-data-[collapsible=icon]:mx-auto group-data-[collapsible=icon]:rounded-xl [&>svg]:size-5! group-data-[collapsible=icon]:[&>svg]:size-5.5!">
                                             <x-dynamic-component :component="'lucide-' . $link['icon']"
                                                 class="size-5 shrink-0 group-data-[collapsible=icon]:size-5.5" />
                                             <span>{{ $link['label'] }}</span>
@@ -80,34 +83,12 @@
         </nav>
     </slot:content>
 
-    <slot:footer class="border-t border-sidebar-border p-3 group-data-[collapsible=icon]:px-2 group-data-[collapsible=icon]:pt-3.5 group-data-[collapsible=icon]:pb-3 flex flex-col gap-2">
+    <slot:footer
+        class="border-t border-sidebar-border p-3 group-data-[collapsible=icon]:px-2 group-data-[collapsible=icon]:pt-3.5 group-data-[collapsible=icon]:pb-3 flex flex-col gap-2">
         <div class="flex flex-col px-2 pb-1 group-data-[collapsible=icon]:hidden">
             <span class="truncate text-sm font-medium">{{ $user->name }}</span>
             <span class="text-xs text-muted-foreground">{{ $user->role->label() }}</span>
         </div>
-
-        <button type="button"
-            x-cloak
-            x-show="$store.pwa?.canPrompt"
-            x-on:click="$store.pwa.install()"
-            class="flex h-11 w-full items-center gap-3 rounded-xl px-2.5 text-sm text-primary transition-colors hover:bg-primary/10 group-data-[collapsible=icon]:size-11! group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:p-0! group-data-[collapsible=icon]:mx-auto group-data-[collapsible=icon]:rounded-xl [&>svg]:size-5! group-data-[collapsible=icon]:[&>svg]:size-5.5!"
-            title="Install Soho Coffee ke Smartphone">
-            <x-lucide-download class="size-5 shrink-0 group-data-[collapsible=icon]:size-5.5" />
-            <span class="group-data-[collapsible=icon]:hidden font-medium">Install Aplikasi</span>
-        </button>
-
-        <button type="button" x-on:click="sidebar.toggle()"
-            class="flex h-11 w-full items-center gap-3 rounded-xl px-2.5 text-sm text-muted-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-foreground group-data-[collapsible=icon]:size-11! group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:p-0! group-data-[collapsible=icon]:mx-auto group-data-[collapsible=icon]:rounded-xl [&>svg]:size-5! group-data-[collapsible=icon]:[&>svg]:size-5.5!"
-            :title="sidebar.open ? 'Kecilkan sidebar' : 'Perluas sidebar'">
-            <template x-if="sidebar.open">
-                <x-lucide-panel-left-close class="size-5 shrink-0 group-data-[collapsible=icon]:size-5.5" />
-            </template>
-            <template x-if="!sidebar.open">
-                <x-lucide-panel-left-open class="size-5 shrink-0 group-data-[collapsible=icon]:size-5.5" />
-            </template>
-            <span class="group-data-[collapsible=icon]:hidden"
-                x-text="sidebar.open ? 'Kecilkan sidebar' : 'Perluas sidebar'"></span>
-        </button>
 
         <form method="POST" action="{{ route('logout') }}">
             @csrf
