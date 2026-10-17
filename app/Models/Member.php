@@ -18,6 +18,14 @@ class Member extends Authenticatable
     use HasFactory;
 
     /**
+     * @var array<string, mixed>
+     */
+    protected $attributes = [
+        'points_balance' => 0,
+        'lifetime_spend' => 0,
+    ];
+
+    /**
      * @return array<string, string>
      */
     protected function casts(): array
@@ -73,13 +81,13 @@ class Member extends Authenticatable
      */
     public function tier(): ?Tier
     {
-        return Tier::forSpend($this->lifetime_spend);
+        return Tier::forSpend((int) ($this->lifetime_spend ?? 0));
     }
 
     public function nextTier(): ?Tier
     {
         return Tier::query()
-            ->where('min_spend', '>', $this->lifetime_spend)
+            ->where('min_spend', '>', (int) ($this->lifetime_spend ?? 0))
             ->orderBy('min_spend')
             ->first();
     }
@@ -88,7 +96,7 @@ class Member extends Authenticatable
     {
         $next = $this->nextTier();
 
-        return $next ? max(0, $next->min_spend - $this->lifetime_spend) : 0;
+        return $next ? max(0, $next->min_spend - (int) ($this->lifetime_spend ?? 0)) : 0;
     }
 
     public function tierProgressPercentage(): int

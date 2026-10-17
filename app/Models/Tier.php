@@ -63,8 +63,10 @@ class Tier extends Model
     /**
      * The highest tier whose threshold the lifetime spend reaches.
      */
-    public static function forSpend(int $lifetimeSpend): ?self
+    public static function forSpend(?int $lifetimeSpend = 0): ?self
     {
+        $lifetimeSpend = (int) $lifetimeSpend;
+
         return static::query()
             ->where('min_spend', '<=', $lifetimeSpend)
             ->orderByDesc('min_spend')
@@ -77,8 +79,10 @@ class Tier extends Model
      *
      * @param  Collection<int, self>  $tiers
      */
-    public static function forSpendFrom(Collection $tiers, int $lifetimeSpend): ?self
+    public static function forSpendFrom(Collection $tiers, ?int $lifetimeSpend = 0): ?self
     {
+        $lifetimeSpend = (int) $lifetimeSpend;
+
         return $tiers
             ->filter(fn (self $tier): bool => $tier->min_spend <= $lifetimeSpend)
             ->sortByDesc('min_spend')
