@@ -32,9 +32,8 @@
                     </button>
                     <x-lucide-chevron-right class="hidden size-3.5 shrink-0 text-muted-foreground/40 sm:inline" />
                     <div class="flex min-w-0 items-center gap-2">
-                        <span
-                            class="hidden text-xs font-semibold uppercase tracking-wider text-muted-foreground/70 sm:inline">{{ Auth::user()->role }}</span>
-                        <x-lucide-chevron-right class="hidden size-3.5 shrink-0 text-muted-foreground/40 sm:inline" />
+                        <img src="{{ asset('icons/logo-black.png') }}" alt="{{ config('app.name') }}"
+                            class="size-5 object-contain dark:invert shrink-0 sm:hidden">
                         <span
                             class="text-xs font-semibold uppercase tracking-wider text-muted-foreground/70">{{ $title }}</span>
                     </div>

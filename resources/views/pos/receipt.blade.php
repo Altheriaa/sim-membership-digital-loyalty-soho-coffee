@@ -5,9 +5,15 @@
     <div class="flex flex-col gap-6">
         <!-- Aksi di atas struk (tidak dicetak) -->
         <div class="no-print flex items-center justify-between gap-3">
-            <april:button-link href="{{ route('pos.index') }}" variant="outline" size="none" class="h-9 px-3 text-xs">
-                &larr; Pesanan baru
-            </april:button-link>
+            @if (request('from') === 'reports' || (url()->previous() && str_contains(url()->previous(), 'reports')))
+                <april:button-link href="{{ route('admin.reports.index') }}" variant="outline" size="none" class="h-9 px-3 text-xs gap-1.5">
+                    &larr; <span>Kembali ke laporan</span>
+                </april:button-link>
+            @else
+                <april:button-link href="{{ route('pos.index') }}" variant="outline" size="none" class="h-9 px-3 text-xs gap-1.5">
+                    &larr; <span>Pesanan baru</span>
+                </april:button-link>
+            @endif
 
             <div class="flex items-center gap-2">
                 <button

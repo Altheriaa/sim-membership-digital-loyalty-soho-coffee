@@ -24,9 +24,7 @@
     >
         <div class="flex items-center justify-between border-b border-border/60 pb-3">
             <div class="flex items-center gap-2.5">
-                <span class="flex size-9 shrink-0 items-center justify-center rounded-xl bg-[#1c325c] p-1.5 shadow-xs">
-                    <img src="{{ asset('icons/Logo.png') }}" alt="{{ config('app.name') }}" class="size-full object-contain">
-                </span>
+                <img src="{{ asset('icons/logo-black.png') }}" alt="{{ config('app.name') }}" class="size-8 object-contain dark:invert shrink-0">
                 <div>
                     <h2 class="font-serif text-base font-bold leading-tight text-foreground">Pasang di iPhone / iPad</h2>
                     <p class="text-[11px] text-muted-foreground">Ikuti 3 langkah mudah berikut di Safari</p>
@@ -116,9 +114,7 @@
     >
         <div class="flex items-center justify-between border-b border-border/60 pb-3">
             <div class="flex items-center gap-2.5">
-                <span class="flex size-9 shrink-0 items-center justify-center rounded-xl bg-[#1c325c] p-1.5 shadow-xs">
-                    <img src="{{ asset('icons/Logo.png') }}" alt="{{ config('app.name') }}" class="size-full object-contain">
-                </span>
+                <img src="{{ asset('icons/logo-black.png') }}" alt="{{ config('app.name') }}" class="size-8 object-contain dark:invert shrink-0">
                 <div>
                     <h2 class="font-serif text-base font-bold leading-tight text-foreground">Pasang di HP Android</h2>
                     <p class="text-[11px] text-muted-foreground">Melalui menu browser Anda</p>

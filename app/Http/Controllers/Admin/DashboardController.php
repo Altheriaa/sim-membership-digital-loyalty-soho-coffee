@@ -31,14 +31,15 @@ class DashboardController extends Controller
         $monthlyRevenue = (int) (clone $thisMonthOrders)->sum('total');
         $totalOrdersCount = (clone $thisMonthOrders)->count();
 
-        $newMembersCount = Member::query()->whereBetween('created_at', [$startOfMonth, $endOfMonth])->count();
+        $MembersCount = Member::query()->count();
         $totalMembersCount = Member::query()->count();
+        $todayNewMembers = Member::query()->whereDate('created_at', today())->count();
 
         $totalMembersWithOrders = Member::query()->has('orders')->count();
         $repeatMembersCount = Member::query()->has('orders', '>=', 2)->count();
         $retentionRate = $totalMembersWithOrders > 0
             ? round(($repeatMembersCount / $totalMembersWithOrders) * 100, 1)
-            : 68.2;
+            : 0;
 
         $revenueFormatted = match (true) {
             $monthlyRevenue >= 1_000_000 => 'Rp '.number_format($monthlyRevenue / 1_000_000, 1, ',', '.').' jt',
@@ -46,25 +47,30 @@ class DashboardController extends Controller
             default => 'Rp 0',
         };
 
+        $todayOrdersCount = Order::query()->whereDate('created_at', today())->count();
+        $todaySalesAmount = (int) Order::query()->whereDate('created_at', today())->sum('total');
+
         $metrics = [
             'revenue' => [
                 'value' => $revenueFormatted,
                 'raw' => $monthlyRevenue,
-                'growth' => '+12,5%',
+                'today' => Rupiah::format($todaySalesAmount),
             ],
             'orders' => [
                 'value' => number_format($totalOrdersCount, 0, ',', '.'),
                 'raw' => $totalOrdersCount,
-                'growth' => '+8,2%',
+                'today' => number_format($todayOrdersCount, 0, ',', '.').' transaksi',
             ],
             'new_members' => [
-                'value' => number_format($newMembersCount, 0, ',', '.'),
-                'raw' => $newMembersCount,
-                'growth' => '+18,7%',
+                'value' => number_format($MembersCount, 0, ',', '.'),
+                'raw' => $MembersCount,
+                'today' => '+'.number_format($todayNewMembers, 0, ',', '.').' member',
             ],
             'retention' => [
                 'value' => ($totalMembersWithOrders > 0 ? str_replace('.', ',', (string) $retentionRate) : '0').'%',
-                'growth' => '+4,1%',
+                'detail' => $totalMembersWithOrders > 0
+                    ? "{$repeatMembersCount} of {$totalMembersWithOrders} "
+                    : 'Belum ada transaksi member',
             ],
         ];
 

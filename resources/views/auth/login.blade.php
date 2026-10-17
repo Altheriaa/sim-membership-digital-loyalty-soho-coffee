@@ -1,7 +1,11 @@
 <x-layouts.guest title="Masuk">
-    <header class="flex flex-col gap-1">
-        <p class="font-serif text-2xl font-semibold">{{ config('app.name') }}</p>
-        <p class="text-sm text-muted-foreground">Masuk sebagai Admin, Owner, atau Kasir</p>
+    <header class="flex items-center gap-3">
+        <img src="{{ asset('icons/logo-black.png') }}" alt="{{ config('app.name') }}"
+            class="size-10 object-contain dark:invert shrink-0">
+        <div class="flex flex-col">
+            <p class="font-serif text-2xl font-semibold leading-tight">{{ config('app.name') }}</p>
+            <p class="text-xs text-muted-foreground">Masuk sebagai Admin, Owner, atau Kasir</p>
+        </div>
     </header>
 
     <form method="POST" action="{{ route('login') }}"

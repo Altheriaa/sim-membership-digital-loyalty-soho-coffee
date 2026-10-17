@@ -36,7 +36,7 @@
         </div>
 
         <div x-show="type === '{{ VoucherType::DiscountAmount->value }}'" @if ($currentType !== VoucherType::DiscountAmount->value) style="display: none" @endif>
-            <x-field name="discount_amount" label="Nominal diskon (Rp)" type="number" :value="$voucher->discount_amount" min="1" step="500" inputmode="numeric" />
+            <x-field name="discount_amount" label="Nominal diskon (Rp)" type="number" :value="$voucher->discount_amount" min="1" step="1" inputmode="numeric" />
         </div>
 
         <x-field name="points_cost" label="Harga dalam poin" type="number" :value="$voucher->points_cost" min="1" inputmode="numeric" hint="Jumlah poin yang dipotong saat member menukar voucer ini." required />

@@ -42,12 +42,9 @@
                     <x-lucide-bar-chart-2 class="size-4" />
                 </div>
             </div>
-            <div class="mt-3 flex items-center gap-1.5 border-t border-border/60 pt-2.5 text-xs">
-                <span class="inline-flex items-center gap-0.5 font-semibold text-emerald-700 dark:text-emerald-400">
-                    <x-lucide-trending-up class="size-3.5 shrink-0" />
-                    {{ $metrics['revenue']['growth'] }}
-                </span>
-                <span class="text-muted-foreground">vs. bulan lalu</span>
+            <div class="mt-3 flex items-center justify-between border-t border-border/60 pt-2.5 text-xs">
+                <span class="text-muted-foreground">Hari ini:</span>
+                <span class="font-semibold text-foreground tabular-nums">{{ $metrics['revenue']['today'] }}</span>
             </div>
         </div>
 
@@ -67,12 +64,9 @@
                     <x-lucide-receipt class="size-4" />
                 </div>
             </div>
-            <div class="mt-3 flex items-center gap-1.5 border-t border-border/60 pt-2.5 text-xs">
-                <span class="inline-flex items-center gap-0.5 font-semibold text-emerald-700 dark:text-emerald-400">
-                    <x-lucide-trending-up class="size-3.5 shrink-0" />
-                    {{ $metrics['orders']['growth'] }}
-                </span>
-                <span class="text-muted-foreground">vs. bulan lalu</span>
+            <div class="mt-3 flex items-center justify-between border-t border-border/60 pt-2.5 text-xs">
+                <span class="text-muted-foreground">Hari ini:</span>
+                <span class="font-semibold text-foreground tabular-nums">{{ $metrics['orders']['today'] }}</span>
             </div>
         </div>
 
@@ -81,7 +75,7 @@
             class="flex flex-col justify-between rounded-lg border border-border bg-card p-4 sm:p-5 text-card-foreground">
             <div class="flex items-start justify-between gap-2">
                 <div>
-                    <p class="text-xs font-medium text-muted-foreground">Member baru</p>
+                    <p class="text-xs font-medium text-muted-foreground">Total Member</p>
                     <p
                         class="mt-2 font-serif text-2xl font-semibold tracking-tight tabular-nums sm:text-3xl text-card-foreground">
                         {{ $metrics['new_members']['value'] }}
@@ -92,12 +86,9 @@
                     <x-lucide-users class="size-4" />
                 </div>
             </div>
-            <div class="mt-3 flex items-center gap-1.5 border-t border-border/60 pt-2.5 text-xs">
-                <span class="inline-flex items-center gap-0.5 font-semibold text-emerald-700 dark:text-emerald-400">
-                    <x-lucide-trending-up class="size-3.5 shrink-0" />
-                    {{ $metrics['new_members']['growth'] }}
-                </span>
-                <span class="text-muted-foreground">vs. bulan lalu</span>
+            <div class="mt-3 flex items-center justify-between border-t border-border/60 pt-2.5 text-xs">
+                <span class="text-muted-foreground">Hari ini:</span>
+                <span class="font-semibold text-foreground tabular-nums">{{ $metrics['new_members']['today'] }}</span>
             </div>
         </div>
 
@@ -117,12 +108,9 @@
                     <x-lucide-star class="size-4" />
                 </div>
             </div>
-            <div class="mt-3 flex items-center gap-1.5 border-t border-border/60 pt-2.5 text-xs">
-                <span class="inline-flex items-center gap-0.5 font-semibold text-emerald-700 dark:text-emerald-400">
-                    <x-lucide-trending-up class="size-3.5 shrink-0" />
-                    {{ $metrics['retention']['growth'] }}
-                </span>
-                <span class="text-muted-foreground">vs. bulan lalu</span>
+            <div class="mt-3 flex items-center justify-between border-t border-border/60 pt-2.5 text-xs">
+                <span class="text-muted-foreground">Pelanggan Setia:</span>
+                <span class="font-semibold text-foreground tabular-nums">{{ $metrics['retention']['detail'] }}</span>
             </div>
         </div>
     </section>
@@ -130,14 +118,14 @@
     {{-- Visual Analytics: Tren Pendapatan & Sebaran Tier --}}
     <section aria-label="Grafik Analitik" class="grid grid-cols-1 gap-6 lg:grid-cols-3">
         {{-- Left: Tren Pendapatan --}}
-        <div
-            x-data="{ activePoint: null }"
+        <div x-data="{ activePoint: null }"
             class="flex flex-col justify-between rounded-lg border border-border bg-card p-4 sm:p-6 text-card-foreground lg:col-span-2">
             <div>
                 <div class="flex flex-wrap items-center justify-between gap-3 border-b border-border pb-3 mb-3">
                     <div>
                         <h2 class="font-serif text-lg font-medium text-card-foreground">Tren Pendapatan</h2>
-                        <p class="mt-0.5 text-xs text-muted-foreground">Performa omzet bulan berjalan dibanding bulan lalu</p>
+                        <p class="mt-0.5 text-xs text-muted-foreground">Performa omzet bulan berjalan dibanding bulan
+                            lalu</p>
                     </div>
                     <div class="flex items-center gap-4 text-xs">
                         <div class="flex items-center gap-1.5 font-medium text-card-foreground">
@@ -154,14 +142,16 @@
                 {{-- Interactive Tooltip Box --}}
                 <div class="h-6 flex items-center">
                     <template x-if="activePoint">
-                        <div class="inline-flex items-center gap-1.5 rounded-md bg-secondary/80 px-2 py-0.5 text-xs text-secondary-foreground border border-border/60">
+                        <div
+                            class="inline-flex items-center gap-1.5 rounded-md bg-secondary/80 px-2 py-0.5 text-xs text-secondary-foreground border border-border/60">
                             <span class="font-medium" x-text="activePoint.date"></span>
                             <span>:</span>
                             <span class="font-semibold text-primary" x-text="activePoint.amount"></span>
                         </div>
                     </template>
                     <template x-if="!activePoint">
-                        <span class="text-xs text-muted-foreground">Arahkan kursor ke titik tanggal untuk melihat detail omzet harian</span>
+                        <span class="text-xs text-muted-foreground">Arahkan kursor ke titik tanggal untuk melihat detail
+                            omzet harian</span>
                     </template>
                 </div>
 
@@ -179,55 +169,39 @@
                         {{-- Horizontal Grid Lines & Y Axis Labels --}}
                         <g class="text-[11px] font-medium fill-muted-foreground">
                             @foreach ($chartData['yAxisLabels'] as $yGrid)
-                                <text x="10" y="{{ $yGrid['y'] + 4 }}" class="fill-muted-foreground">{{ $yGrid['label'] }}</text>
-                                <line x1="45" y1="{{ $yGrid['y'] }}" x2="630" y2="{{ $yGrid['y'] }}" stroke="currentColor" stroke-opacity="0.1" stroke-width="1" />
+                                <text x="10" y="{{ $yGrid['y'] + 4 }}"
+                                    class="fill-muted-foreground">{{ $yGrid['label'] }}</text>
+                                <line x1="45" y1="{{ $yGrid['y'] }}" x2="630" y2="{{ $yGrid['y'] }}" stroke="currentColor"
+                                    stroke-opacity="0.1" stroke-width="1" />
                             @endforeach
                         </g>
 
                         {{-- Area fill for current month curve --}}
                         @if ($chartData['areaThisMonth'])
-                            <path
-                                d="{{ $chartData['areaThisMonth'] }}"
-                                fill="url(#sohoRevenueGradient)" />
+                            <path d="{{ $chartData['areaThisMonth'] }}" fill="url(#sohoRevenueGradient)" />
                         @endif
 
                         {{-- Previous Month Comparison (Dashed Curve) --}}
                         @if ($chartData['pathLastMonth'])
-                            <path
-                                d="{{ $chartData['pathLastMonth'] }}"
-                                fill="none"
-                                stroke="currentColor"
-                                stroke-opacity="0.3"
-                                stroke-width="2"
-                                stroke-dasharray="4 4"
-                                stroke-linecap="round" />
+                            <path d="{{ $chartData['pathLastMonth'] }}" fill="none" stroke="currentColor"
+                                stroke-opacity="0.3" stroke-width="2" stroke-dasharray="4 4" stroke-linecap="round" />
                         @endif
 
                         {{-- Current Month (Solid Primary Brand Amber Curve) --}}
                         @if ($chartData['pathThisMonth'])
-                            <path
-                                d="{{ $chartData['pathThisMonth'] }}"
-                                fill="none"
-                                class="stroke-primary"
-                                stroke-width="2.5"
-                                stroke-linecap="round"
-                                stroke-linejoin="round" />
+                            <path d="{{ $chartData['pathThisMonth'] }}" fill="none" class="stroke-primary"
+                                stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
                         @endif
 
                         {{-- Interactive Data Point Markers on Current Month Curve --}}
                         @foreach ($chartData['points'] as $pt)
-                            <circle
-                                cx="{{ $pt['x'] }}"
-                                cy="{{ $pt['y'] }}"
+                            <circle cx="{{ $pt['x'] }}" cy="{{ $pt['y'] }}"
                                 r="{{ $pt['day'] === ($chartData['lastPoint']['day'] ?? null) ? 4.5 : ($pt['amount'] > 0 ? 3.5 : 2) }}"
                                 class="{{ $pt['amount'] > 0 ? 'fill-card stroke-primary' : 'fill-border stroke-border' }}"
                                 stroke-width="2" />
 
                             {{-- Hover Target --}}
-                            <circle
-                                cx="{{ $pt['x'] }}"
-                                cy="{{ $pt['y'] }}"
-                                r="10"
+                            <circle cx="{{ $pt['x'] }}" cy="{{ $pt['y'] }}" r="10"
                                 class="fill-transparent cursor-pointer hover:stroke-primary hover:stroke-2"
                                 @mouseenter="activePoint = { date: '{{ $pt['date'] }}', amount: '{{ $pt['amountFormatted'] }}' }"
                                 @mouseleave="activePoint = null" />
@@ -236,7 +210,8 @@
                         {{-- X Axis Date Labels --}}
                         <g class="text-[11px] font-medium fill-muted-foreground">
                             @foreach ($chartData['xAxisDates'] as $xDate)
-                                <text x="{{ $xDate['x'] }}" y="235" text-anchor="{{ $xDate['anchor'] }}" class="fill-muted-foreground">{{ $xDate['label'] }}</text>
+                                <text x="{{ $xDate['x'] }}" y="235" text-anchor="{{ $xDate['anchor'] }}"
+                                    class="fill-muted-foreground">{{ $xDate['label'] }}</text>
                             @endforeach
                         </g>
                     </svg>

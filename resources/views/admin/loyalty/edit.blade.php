@@ -10,8 +10,8 @@
         @csrf
         @method('PUT')
 
-        <x-field name="spend_per_point" label="Belanja untuk mendapat 1 poin (Rp)" type="number" :value="$settings->spend_per_point" min="1" step="500" inputmode="numeric" hint="Contoh: 10000 berarti setiap Rp 10.000 menghasilkan 1 poin." required />
-        <x-field name="point_value" label="Nilai tukar 1 poin (Rp)" type="number" :value="$settings->point_value" min="1" step="100" inputmode="numeric" hint="Potongan harga yang didapat dari 1 poin saat dipakai membayar." required />
+        <x-field name="spend_per_point" label="Belanja untuk mendapat 1 poin (Rp)" type="number" :value="$settings->spend_per_point" min="1" step="1" inputmode="numeric" hint="Contoh: 10000 berarti setiap Rp 10.000 menghasilkan 1 poin." required />
+        <x-field name="point_value" label="Nilai tukar 1 poin (Rp)" type="number" :value="$settings->point_value" min="1" step="1" inputmode="numeric" hint="Potongan harga yang didapat dari 1 poin saat dipakai membayar." required />
         <x-field name="tax_percent" label="Pajak (%)" type="number" :value="rtrim(rtrim($settings->tax_percent, '0'), '.')" min="0" max="100" step="0.01" inputmode="decimal" hint="Isi sesuai pajak cafe, misalnya 10 untuk PB1. Isi 0 jika tidak ada." required />
 
         <div class="flex flex-wrap items-center gap-2">

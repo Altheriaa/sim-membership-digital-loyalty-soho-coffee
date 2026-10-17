@@ -28,10 +28,9 @@
         <a href="{{ route('home') }}"
             class="flex items-center gap-3 rounded-xl px-2 py-1.5 outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0"
             title="{{ config('app.name') }}">
-            <span
-                class="flex size-9 shrink-0 items-center justify-center rounded-xl bg-[#1c325c] p-1.5 shadow-xs ring-1 ring-black/10 dark:ring-white/10 group-data-[collapsible=icon]:size-10 group-data-[collapsible=icon]:p-2">
-                <img src="{{ asset('icons/Logo.png') }}" alt="{{ config('app.name') }}"
-                    class="size-full object-contain">
+            <span class="flex size-9 shrink-0 items-center justify-center group-data-[collapsible=icon]:size-10">
+                <img src="{{ asset('icons/logo-black.png') }}" alt="{{ config('app.name') }}"
+                    class="size-8 object-contain dark:invert group-data-[collapsible=icon]:size-9">
             </span>
             <div class="flex flex-col group-data-[collapsible=icon]:hidden min-w-0">
                 <span class="truncate font-serif text-base font-semibold leading-tight">{{ config('app.name') }}</span>
@@ -40,14 +39,15 @@
         </a>
     </slot:header>
 
-    <slot:content class="overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden px-2 pb-4 group-data-[collapsible=icon]:px-1.5 group-data-[collapsible=icon]:pb-3.5">
+    <slot:content
+        class="overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden px-2 pb-4 group-data-[collapsible=icon]:px-1.5 group-data-[collapsible=icon]:pb-3.5">
         <nav aria-label="Navigasi utama" class="flex flex-col gap-1.5 pb-1">
             <april:sidebar-group class="p-1 group-data-[collapsible=icon]:p-0">
                 <april:sidebar-menu class="gap-1.5">
                     <april:sidebar-menu-item>
                         <april:sidebar-menu-button-link href="{{ route('admin.dashboard') }}"
                             :active="request()->routeIs('admin.dashboard')" title="Dashboard"
-                            class="h-11 gap-3 rounded-2xl group-data-[collapsible=icon]:size-11! group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:p-0! group-data-[collapsible=icon]:mx-auto group-data-[collapsible=icon]:rounded-xl [&>svg]:size-5! group-data-[collapsible=icon]:[&>svg]:size-5.5!">
+                            class="h-11 gap-3 rounded-xl group-data-[collapsible=icon]:size-11! group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:p-0! group-data-[collapsible=icon]:mx-auto group-data-[collapsible=icon]:rounded-xl [&>svg]:size-5! group-data-[collapsible=icon]:[&>svg]:size-5.5!">
                             <x-lucide-home class="size-5 shrink-0 group-data-[collapsible=icon]:size-5.5" />
                             <span>Dashboard</span>
                         </april:sidebar-menu-button-link>
@@ -68,7 +68,7 @@
                                     <april:sidebar-menu-item>
                                         <april:sidebar-menu-button-link href="{{ route($link['route']) }}"
                                             :active="request()->routeIs($link['match'])" :title="$link['label']"
-                                            class="h-11 gap-3 rounded-2xl group-data-[collapsible=icon]:size-11! group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:p-0! group-data-[collapsible=icon]:mx-auto group-data-[collapsible=icon]:rounded-xl [&>svg]:size-5! group-data-[collapsible=icon]:[&>svg]:size-5.5!">
+                                            class="h-11 gap-3 rounded-xl group-data-[collapsible=icon]:size-11! group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:p-0! group-data-[collapsible=icon]:mx-auto group-data-[collapsible=icon]:rounded-xl [&>svg]:size-5! group-data-[collapsible=icon]:[&>svg]:size-5.5!">
                                             <x-dynamic-component :component="'lucide-' . $link['icon']"
                                                 class="size-5 shrink-0 group-data-[collapsible=icon]:size-5.5" />
                                             <span>{{ $link['label'] }}</span>

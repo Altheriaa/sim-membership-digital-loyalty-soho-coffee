@@ -61,19 +61,20 @@ Route::post('/logout', [SessionController::class, 'destroy'])->middleware('auth'
 Route::middleware('auth')->group(function () {
     Route::get('/', HomeController::class)->name('home');
 
+    Route::middleware('role:cashier,admin,owner')->get('pos/orders/{order}', [OrderController::class, 'show'])->name('pos.orders.show');
+
     Route::middleware('role:cashier,admin')->prefix('pos')->name('pos.')->group(function () {
         Route::get('/', PosController::class)->name('index');
         Route::get('members/lookup', [MemberController::class, 'lookup'])->name('members.lookup');
         Route::post('members', [MemberController::class, 'store'])->name('members.store');
         Route::get('vouchers/lookup', [PosVoucherController::class, 'lookup'])->name('vouchers.lookup');
         Route::post('orders', [OrderController::class, 'store'])->name('orders.store');
-        Route::get('orders/{order}', [OrderController::class, 'show'])->name('orders.show');
     });
 
     Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('/', DashboardController::class)->middleware('role:owner,admin')->name('dashboard');
 
-        Route::get('reports', [ReportController::class, 'index'])->middleware('role:owner,admin')->name('reports.index');
+        Route::get('reports', [ReportController::class, 'index'])->middleware('role:cashier,owner,admin')->name('reports.index');
 
         Route::middleware('role:admin')->group(function () {
             Route::resource('members', AdminMemberController::class)->except(['create', 'destroy']);

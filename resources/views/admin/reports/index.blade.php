@@ -70,9 +70,14 @@
     <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <!-- Total Omzet Penjualan -->
         <div class="rounded-lg border border-border bg-card p-4 sm:p-5 text-card-foreground">
-            <p class="text-xs font-medium text-muted-foreground">Total Omzet Penjualan</p>
+            <p class="text-xs font-medium text-muted-foreground">Total Omzet Penjualan + Tax</p>
             <p class="mt-2 font-serif text-2xl sm:text-3xl font-semibold tabular-nums tracking-tight text-primary">{{ Rupiah::format($grossSales) }}</p>
-            <p class="mt-1 text-xs text-muted-foreground tabular-nums">Subtotal bersih: {{ Rupiah::format($subtotalSales) }}</p>
+            <p class="mt-1 text-xs text-muted-foreground tabular-nums">
+                Subtotal menu: {{ Rupiah::format($subtotalSales) }}
+                @if ($totalDiscount > 0)
+                    · Diskon: -{{ Rupiah::format($totalDiscount) }}
+                @endif
+            </p>
         </div>
 
         <!-- Jumlah Transaksi -->
@@ -186,6 +191,91 @@
         </section>
     </div>
 
+    <!-- Riwayat Transaksi Penjualan -->
+    <section aria-labelledby="transactions-heading" class="overflow-hidden rounded-lg border border-border bg-card text-card-foreground">
+        <div class="border-b border-border p-4 flex items-center justify-between">
+            <h3 id="transactions-heading" class="font-serif text-base font-medium">Transaksi Penjualan</h3>
+            <span class="text-xs text-muted-foreground tabular-nums">{{ number_format($totalOrders) }} transaksi</span>
+        </div>
+
+        @if ($orders->isEmpty())
+            <div class="p-8 text-center text-xs text-muted-foreground">
+                Belum ada transaksi penjualan pada rentang waktu ini.
+            </div>
+        @else
+            <div class="overflow-x-auto">
+                <table class="w-full text-xs">
+                    <thead>
+                        <tr class="border-b border-border text-left text-muted-foreground">
+                            <th scope="col" class="px-4 py-3 font-medium">No. Struk & Waktu</th>
+                            <th scope="col" class="px-4 py-3 font-medium">Kasir</th>
+                            <th scope="col" class="px-4 py-3 font-medium">Pelanggan</th>
+                            <th scope="col" class="px-4 py-3 font-medium">Metode</th>
+                            <th scope="col" class="px-4 py-3 font-medium">Menu</th>
+                            <th scope="col" class="px-4 py-3 font-medium text-right">Total</th>
+                            <th scope="col" class="no-print px-4 py-3 text-right"><span class="sr-only">Aksi</span></th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-border">
+                        @foreach ($orders as $order)
+                            <tr class="hover:bg-accent/30 transition-colors">
+                                <td class="px-4 py-3 whitespace-nowrap">
+                                    <a
+                                        href="{{ route('pos.orders.show', ['order' => $order, 'from' => 'reports']) }}"
+                                        target="_blank"
+                                        class="font-mono font-medium text-foreground hover:underline"
+                                        title="Buka struk {{ $order->number }}"
+                                    >
+                                        {{ $order->number }}
+                                    </a>
+                                    <span class="block text-[11px] text-muted-foreground tabular-nums">
+                                        {{ $order->created_at->translatedFormat('d M Y, H:i') }}
+                                    </span>
+                                </td>
+                                <td class="px-4 py-3 whitespace-nowrap text-foreground">
+                                    {{ $order->cashier->name }}
+                                </td>
+                                <td class="px-4 py-3 whitespace-nowrap">
+                                    @if ($order->member)
+                                        <div class="flex flex-col">
+                                            <span class="font-medium text-foreground">{{ $order->member->name }}</span>
+                                            <span class="text-[11px] text-muted-foreground tabular-nums">{{ $order->member->displayPhone() }}</span>
+                                        </div>
+                                    @else
+                                        <span class="text-muted-foreground">Umum</span>
+                                    @endif
+                                </td>
+                                <td class="px-4 py-3 whitespace-nowrap text-muted-foreground">
+                                    {{ $order->payment_method->label() }}
+                                </td>
+                                <td class="px-4 py-3 text-muted-foreground max-w-xs truncate" title="{{ $order->items->map(fn ($i) => "{$i->quantity}x {$i->name}")->join(', ') }}">
+                                    {{ $order->items->take(2)->map(fn ($i) => "{$i->quantity}x {$i->name}")->join(', ') }}
+                                    @if ($order->items->count() > 2)
+                                        <span class="text-muted-foreground/60">(+{{ $order->items->count() - 2 }} lainnya)</span>
+                                    @endif
+                                </td>
+                                <td class="px-4 py-3 text-right tabular-nums font-semibold text-foreground whitespace-nowrap">
+                                    {{ Rupiah::format($order->total) }}
+                                </td>
+                                <td class="no-print px-4 py-3 text-right whitespace-nowrap">
+                                    <a
+                                        href="{{ route('pos.orders.show', ['order' => $order, 'from' => 'reports']) }}"
+                                        target="_blank"
+                                        class="inline-flex h-8 items-center justify-center rounded-md border border-input bg-background px-3 text-xs font-medium text-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
+                                    >
+                                        Cetak struk
+                                    </a>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+
+            <x-pagination :paginator="$orders" />
+        @endif
+    </section>
+
     <!-- Log Audit Mutasi Poin & Pembukuan Poin -->
     <section aria-labelledby="audit-heading" class="overflow-hidden rounded-lg border border-border bg-card text-card-foreground">
         <div class="border-b border-border p-4 flex items-center justify-between">
@@ -215,7 +305,7 @@
                                 <td class="px-4 py-3 text-muted-foreground">{{ $pt->created_at->translatedFormat('d M Y, H:i') }}</td>
                                 <td class="px-4 py-3 font-medium text-foreground">
                                     @if ($pt->member)
-                                        <a href="{{ route('admin.members.show', $pt->member) }}" class="hover:underline text-primary">
+                                        <a href="{{ route('admin.members.show', $pt->member) }}" class="hover:underline">
                                             {{ $pt->member->name }}
                                         </a>
                                         <span class="block text-[11px] text-muted-foreground tabular-nums">{{ $pt->member->displayPhone() }}</span>

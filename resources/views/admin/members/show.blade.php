@@ -1,11 +1,13 @@
 @use('App\Support\Rupiah')
 
-<x-layouts.admin :title="'Member · ' . $member->name">
+<x-layouts.admin :title="'Member : '. $member->name">
     <x-slot:actions>
-        <april:button-link href="{{ route('admin.members.edit', $member) }}" variant="outline" size="none" class="h-10 px-3.5 text-xs">
+        <april:button-link href="{{ route('admin.members.edit', $member) }}" variant="outline" size="none"
+            class="h-10 px-3.5 text-xs">
             Ubah kontak
         </april:button-link>
-        <april:button-link href="{{ route('admin.members.index') }}" variant="outline" size="none" class="h-10 px-3.5 text-xs">
+        <april:button-link href="{{ route('admin.members.index') }}" variant="outline" size="none"
+            class="h-10 px-3.5 text-xs">
             &larr; Semua member
         </april:button-link>
     </x-slot:actions>
@@ -15,7 +17,8 @@
         <!-- Kolom Profil -->
         <div class="rounded-lg border border-border bg-card p-5 text-card-foreground flex flex-col gap-4">
             <div class="flex items-center gap-3">
-                <div class="flex size-12 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-bold uppercase text-primary-foreground">
+                <div
+                    class="flex size-12 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-bold uppercase text-primary-foreground">
                     {{ substr($member->name, 0, 2) }}
                 </div>
                 <div class="min-w-0">
@@ -38,12 +41,15 @@
 
                 <div class="flex justify-between items-center">
                     <span class="text-muted-foreground">Saldo Poin:</span>
-                    <span class="font-serif text-base font-bold text-primary tabular-nums">{{ number_format($member->points_balance) }} poin</span>
+                    <span
+                        class="font-serif text-base font-bold text-primary tabular-nums">{{ number_format($member->points_balance) }}
+                        poin</span>
                 </div>
 
                 <div class="flex justify-between items-center">
                     <span class="text-muted-foreground">Akumulasi Belanja:</span>
-                    <span class="font-medium text-foreground tabular-nums">{{ Rupiah::format($member->lifetime_spend) }}</span>
+                    <span
+                        class="font-medium text-foreground tabular-nums">{{ Rupiah::format($member->lifetime_spend) }}</span>
                 </div>
 
                 <div class="flex justify-between items-center">
@@ -57,36 +63,27 @@
         <div class="lg:col-span-2 rounded-lg border border-border bg-card p-5 text-card-foreground flex flex-col gap-3">
             <h3 class="font-serif text-base font-medium">Penyesuaian Poin Manual</h3>
             <p class="text-xs text-muted-foreground">
-                Gunakan untuk menambah poin apresiasi atau mengoreksi kesalahan sistem. Setiap penyesuaian akan tercatat rapi di log mutasi.
+                Gunakan untuk menambah poin apresiasi atau mengoreksi kesalahan sistem. Setiap penyesuaian akan tercatat
+                rapi di log mutasi.
             </p>
 
-            <form method="POST" action="{{ route('admin.members.adjust-points', $member) }}" class="mt-2 grid grid-cols-1 gap-3 sm:grid-cols-12 items-end">
+            <form method="POST" action="{{ route('admin.members.adjust-points', $member) }}"
+                class="mt-2 grid grid-cols-1 gap-3 sm:grid-cols-12 items-end">
                 @csrf
                 <div class="sm:col-span-4 flex flex-col gap-1">
-                    <label for="points-input" class="text-xs font-medium text-muted-foreground">Jumlah Poin (+ / -)</label>
-                    <input
-                        id="points-input"
-                        type="number"
-                        name="points"
-                        value="{{ old('points') }}"
-                        placeholder="Contoh: 50 atau -20"
-                        required
-                        class="h-10 w-full rounded-md border border-input bg-background px-3 text-xs tabular-nums text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                    >
+                    <label for="points-input" class="text-xs font-medium text-muted-foreground">Jumlah Poin (+ /
+                        -)</label>
+                    <input id="points-input" type="number" name="points" value="{{ old('points') }}"
+                        placeholder="Contoh: 50 atau -20" required
+                        class="h-10 w-full rounded-md border border-input bg-background px-3 text-xs tabular-nums text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring">
                 </div>
 
                 <div class="sm:col-span-5 flex flex-col gap-1">
-                    <label for="desc-input" class="text-xs font-medium text-muted-foreground">Alasan / Keterangan</label>
-                    <input
-                        id="desc-input"
-                        type="text"
-                        name="description"
-                        value="{{ old('description') }}"
-                        placeholder="Contoh: Bonus event atau kompensasi"
-                        required
-                        maxlength="100"
-                        class="h-10 w-full rounded-md border border-input bg-background px-3 text-xs text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                    >
+                    <label for="desc-input" class="text-xs font-medium text-muted-foreground">Alasan /
+                        Keterangan</label>
+                    <input id="desc-input" type="text" name="description" value="{{ old('description') }}"
+                        placeholder="Contoh: Bonus event atau kompensasi" required maxlength="100"
+                        class="h-10 w-full rounded-md border border-input bg-background px-3 text-xs text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring">
                 </div>
 
                 <div class="sm:col-span-3">
@@ -105,7 +102,8 @@
     </div>
 
     <!-- Riwayat Transaksi Belanja Member -->
-    <section aria-labelledby="orders-heading" class="overflow-hidden rounded-lg border border-border bg-card text-card-foreground">
+    <section aria-labelledby="orders-heading"
+        class="overflow-hidden rounded-lg border border-border bg-card text-card-foreground">
         <div class="border-b border-border p-4">
             <h3 id="orders-heading" class="font-serif text-base font-medium">Riwayat Transaksi Pesanan</h3>
         </div>
@@ -131,11 +129,14 @@
                         @foreach ($orders as $order)
                             <tr class="hover:bg-accent/40">
                                 <td class="px-4 py-3 font-mono font-medium text-foreground">{{ $order->number }}</td>
-                                <td class="px-4 py-3 text-muted-foreground">{{ $order->created_at->translatedFormat('d M Y, H:i') }}</td>
+                                <td class="px-4 py-3 text-muted-foreground">
+                                    {{ $order->created_at->translatedFormat('d M Y, H:i') }}</td>
                                 <td class="px-4 py-3 text-foreground">{{ $order->cashier->name }}</td>
                                 <td class="px-4 py-3 text-muted-foreground">{{ $order->payment_method->label() }}</td>
-                                <td class="px-4 py-3 text-right font-medium text-primary tabular-nums">+{{ number_format($order->points_earned) }}</td>
-                                <td class="px-4 py-3 text-right font-semibold text-foreground tabular-nums">{{ Rupiah::format($order->total) }}</td>
+                                <td class="px-4 py-3 text-right font-medium text-primary tabular-nums">
+                                    +{{ number_format($order->points_earned) }}</td>
+                                <td class="px-4 py-3 text-right font-semibold text-foreground tabular-nums">
+                                    {{ Rupiah::format($order->total) }}</td>
                             </tr>
                         @endforeach
                     </tbody>
@@ -147,7 +148,8 @@
     </section>
 
     <!-- Riwayat Mutasi Poin -->
-    <section aria-labelledby="points-heading" class="overflow-hidden rounded-lg border border-border bg-card text-card-foreground">
+    <section aria-labelledby="points-heading"
+        class="overflow-hidden rounded-lg border border-border bg-card text-card-foreground">
         <div class="border-b border-border p-4">
             <h3 id="points-heading" class="font-serif text-base font-medium">Log Mutasi & Riwayat Poin</h3>
         </div>
@@ -170,9 +172,11 @@
                     <tbody class="divide-y divide-border">
                         @foreach ($transactions as $tx)
                             <tr class="hover:bg-accent/40">
-                                <td class="px-4 py-3 text-muted-foreground">{{ $tx->created_at->translatedFormat('d M Y, H:i') }}</td>
+                                <td class="px-4 py-3 text-muted-foreground">
+                                    {{ $tx->created_at->translatedFormat('d M Y, H:i') }}</td>
                                 <td class="px-4 py-3 text-foreground">{{ $tx->description }}</td>
-                                <td class="px-4 py-3 text-right font-semibold tabular-nums {{ $tx->points >= 0 ? 'text-primary' : 'text-destructive' }}">
+                                <td
+                                    class="px-4 py-3 text-right font-semibold tabular-nums {{ $tx->points >= 0 ? 'text-primary' : 'text-destructive' }}">
                                     {{ $tx->points >= 0 ? '+' : '' }}{{ number_format($tx->points) }} poin
                                 </td>
                                 <td class="px-4 py-3 text-right font-medium text-muted-foreground tabular-nums">

@@ -68,6 +68,7 @@ class ReportController extends Controller
         $totalOrders = (clone $ordersQuery)->count();
         $grossSales = (int) (clone $ordersQuery)->sum('total');
         $subtotalSales = (int) (clone $ordersQuery)->sum('subtotal');
+        $totalDiscount = (int) (clone $ordersQuery)->sum('discount_amount');
         $totalTax = (int) (clone $ordersQuery)->sum('tax_amount');
         $cashSales = (int) (clone $ordersQuery)->where('payment_method', PaymentMethod::Cash)->sum('total');
         $nonCashSales = (int) (clone $ordersQuery)->where('payment_method', PaymentMethod::NonCash)->sum('total');
@@ -92,6 +93,13 @@ class ReportController extends Controller
             ->orderByDesc('total_sales')
             ->get();
 
+        // Daftar Transaksi Penjualan (Riwayat Struk)
+        $orders = (clone $ordersQuery)
+            ->with(['cashier', 'member', 'items'])
+            ->latest('id')
+            ->paginate(15, ['*'], 'orders_page')
+            ->withQueryString();
+
         // Log Rekap Mutasi Poin & Transaksi Audit
         $pointTransactions = PointTransaction::query()
             ->with(['member', 'order.cashier'])
@@ -108,6 +116,7 @@ class ReportController extends Controller
             'totalOrders' => $totalOrders,
             'grossSales' => $grossSales,
             'subtotalSales' => $subtotalSales,
+            'totalDiscount' => $totalDiscount,
             'totalTax' => $totalTax,
             'cashSales' => $cashSales,
             'nonCashSales' => $nonCashSales,
@@ -115,6 +124,7 @@ class ReportController extends Controller
             'totalPointsEarned' => $totalPointsEarned,
             'bestSellers' => $bestSellers,
             'cashierStats' => $cashierStats,
+            'orders' => $orders,
             'pointTransactions' => $pointTransactions,
         ]);
     }
