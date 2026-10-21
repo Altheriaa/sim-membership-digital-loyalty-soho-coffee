@@ -15,6 +15,19 @@ class ReportController extends Controller
 {
     public function index(Request $request): View
     {
+        return view('admin.reports.index', $this->prepareReportData($request, paginate: true));
+    }
+
+    public function print(Request $request): View
+    {
+        return view('admin.reports.print', $this->prepareReportData($request, paginate: false));
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function prepareReportData(Request $request, bool $paginate = true): array
+    {
         $request->validate([
             'period' => ['sometimes', 'in:today,yesterday,7_days,this_month,custom,30_days'],
             'start_date' => ['nullable', 'date_format:Y-m-d'],
@@ -76,13 +89,13 @@ class ReportController extends Controller
         $totalPointsEarned = (int) (clone $ordersQuery)->sum('points_earned');
 
         // Menu Paling Laris (Best Seller)
-        $bestSellers = OrderItem::query()
+        $bestSellersQuery = OrderItem::query()
             ->whereHas('order', fn ($q) => $q->whereBetween('created_at', [$startDate, $endDate]))
             ->selectRaw('name, sum(quantity) as total_qty, sum(line_total) as total_sales')
             ->groupBy('name')
-            ->orderByDesc('total_qty')
-            ->limit(10)
-            ->get();
+            ->orderByDesc('total_qty');
+
+        $bestSellers = $paginate ? $bestSellersQuery->limit(10)->get() : $bestSellersQuery->get();
 
         // Laporan Performa Kasir
         $cashierStats = Order::query()
@@ -94,21 +107,33 @@ class ReportController extends Controller
             ->get();
 
         // Daftar Transaksi Penjualan (Riwayat Struk)
-        $orders = (clone $ordersQuery)
-            ->with(['cashier', 'member', 'items'])
-            ->latest('id')
-            ->paginate(15, ['*'], 'orders_page')
-            ->withQueryString();
+        if ($paginate) {
+            $orders = (clone $ordersQuery)
+                ->with(['cashier', 'member', 'items'])
+                ->latest('id')
+                ->paginate(15, ['*'], 'orders_page')
+                ->withQueryString();
 
-        // Log Rekap Mutasi Poin & Transaksi Audit
-        $pointTransactions = PointTransaction::query()
-            ->with(['member', 'order.cashier'])
-            ->whereBetween('created_at', [$startDate, $endDate])
-            ->latest('id')
-            ->paginate(15)
-            ->withQueryString();
+            $pointTransactions = PointTransaction::query()
+                ->with(['member', 'order.cashier'])
+                ->whereBetween('created_at', [$startDate, $endDate])
+                ->latest('id')
+                ->paginate(15)
+                ->withQueryString();
+        } else {
+            $orders = (clone $ordersQuery)
+                ->with(['cashier', 'member', 'items'])
+                ->latest('id')
+                ->get();
 
-        return view('admin.reports.index', [
+            $pointTransactions = PointTransaction::query()
+                ->with(['member', 'order.cashier'])
+                ->whereBetween('created_at', [$startDate, $endDate])
+                ->latest('id')
+                ->get();
+        }
+
+        return [
             'period' => $period,
             'periodLabel' => $label,
             'startDate' => $startDate->format('Y-m-d'),
@@ -126,6 +151,6 @@ class ReportController extends Controller
             'cashierStats' => $cashierStats,
             'orders' => $orders,
             'pointTransactions' => $pointTransactions,
-        ]);
+        ];
     }
 }

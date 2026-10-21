@@ -2,13 +2,15 @@
 
 <x-layouts.admin title="Laporan Penjualan & Pembukuan">
     <x-slot:actions>
-        <button
-            type="button"
-            onclick="window.print()"
-            class="inline-flex h-10 items-center justify-center rounded-md border border-border bg-card px-3.5 text-xs font-medium text-foreground hover:bg-accent transition-colors"
+        <a
+            href="{{ route('admin.reports.print', request()->query()) }}"
+            target="_blank"
+            class="inline-flex h-10 items-center justify-center gap-2 rounded-md border border-border bg-card px-3.5 text-xs font-medium text-foreground hover:bg-accent transition-colors"
+            title="Buka halaman cetak laporan resmi"
         >
-            Cetak ringkasan
-        </button>
+            <x-lucide-printer class="size-3.5 text-muted-foreground" />
+            <span>Cetak laporan</span>
+        </a>
     </x-slot:actions>
 
     <!-- Bar Filter Rentang Waktu -->

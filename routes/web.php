@@ -76,6 +76,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/', DashboardController::class)->middleware('role:owner,admin')->name('dashboard');
 
         Route::get('reports', [ReportController::class, 'index'])->middleware('role:cashier,owner,admin')->name('reports.index');
+        Route::get('reports/print', [ReportController::class, 'print'])->middleware('role:cashier,owner,admin')->name('reports.print');
 
         Route::middleware('role:admin')->group(function () {
             Route::resource('members', AdminMemberController::class)->except(['create', 'destroy']);
