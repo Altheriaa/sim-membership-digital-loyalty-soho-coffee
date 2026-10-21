@@ -39,9 +39,11 @@
             <header class="border-b-2 border-foreground pb-3 mb-4">
                 <div class="flex items-start justify-between gap-4">
                     <div class="flex items-center gap-3">
-                        <div class="flex size-10 shrink-0 items-center justify-center rounded-md border border-foreground/30 bg-muted/60 font-serif font-bold text-base text-foreground">
-                            SC
-                        </div>
+                        <img
+                            src="{{ asset('icons/logo-black.png') }}"
+                            alt="{{ config('app.name') }}"
+                            class="size-11 shrink-0 object-contain dark:invert"
+                        >
                         <div>
                             <h1 class="font-serif text-lg font-bold tracking-tight text-foreground uppercase leading-none">
                                 Soho Caffe
@@ -356,6 +358,10 @@
                 .report-paper * {
                     color: #000000 !important;
                     border-color: #cbd5e1 !important;
+                }
+
+                img {
+                    filter: none !important;
                 }
 
                 /* Pertahankan format angka tanpa pemotongan teks */
