@@ -94,7 +94,7 @@
                     <button type="button" @click="add(item)" :disabled="!item.available"
                         class="group flex flex-col justify-between rounded-lg border border-border bg-card p-3 text-left text-card-foreground transition-all hover:border-primary/50 hover:shadow-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
                         :aria-label="item.name + ' harga ' + rupiah(item.price) + (quantityOf(item.id) > 0 ? ', ada ' + quantityOf(item.id) + ' di keranjang' : '')">
-                        
+
                         <div class="flex items-start justify-between gap-4 w-full">
                             <div class="flex items-start gap-2.5 min-w-0 flex-1">
                                 <template x-if="item.imageUrl">

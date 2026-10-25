@@ -11,9 +11,7 @@ use Illuminate\Http\JsonResponse;
 
 class MemberController extends Controller
 {
-    /**
-     * Find a member by WhatsApp number. An unknown number is a normal answer, not an error, so it returns member: null.
-     */
+    // cari member berdasar no wa
     public function lookup(LookupMemberRequest $request): JsonResponse
     {
         $member = Member::query()->where('phone', $request->validated('phone'))->first();
@@ -23,9 +21,7 @@ class MemberController extends Controller
         ]);
     }
 
-    /**
-     * Quick register from the register: a WhatsApp number and a nickname are all the cashier asks for.
-     */
+    // Register Cepat di POS
     public function store(MemberRequest $request): JsonResponse
     {
         $member = Member::create($request->validated());

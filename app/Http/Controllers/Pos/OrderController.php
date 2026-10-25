@@ -18,6 +18,7 @@ use Illuminate\Validation\ValidationException;
 
 class OrderController extends Controller
 {
+    // Transaksi order
     public function store(OrderRequest $request): JsonResponse
     {
         $settings = LoyaltySetting::current();
@@ -119,6 +120,7 @@ class OrderController extends Controller
         ], 201);
     }
 
+    // Nampilin Nota Transaksi
     public function show(Order $order): View
     {
         return view('pos.receipt', [

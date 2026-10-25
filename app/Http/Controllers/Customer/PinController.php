@@ -4,11 +4,13 @@ namespace App\Http\Controllers\Customer;
 
 use App\Http\Controllers\Controller;
 use App\Models\Member;
+use App\Services\FonnteService;
 use Carbon\Carbon;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class PinController extends Controller
 {
@@ -57,13 +59,30 @@ class PinController extends Controller
         return redirect()->route('customer.pin.show')->with('status', 'PIN Keamanan 6-digit berhasil disimpan.');
     }
 
-    public function requestReset(): RedirectResponse
+    public function requestReset(FonnteService $fonnteService): RedirectResponse
     {
         /** @var Member $member */
         $member = Auth::guard('customer')->user();
 
         $otp = (string) random_int(1000, 9999);
         $expiresAt = Carbon::now()->addMinutes(5);
+
+        try {
+            $fonnteService->sendOTP(
+                $member->phone,
+                $otp,
+                "Kode OTP reset PIN Keamanan SOHO Coffee Anda adalah *{$otp}*. Jangan bagikan kode ini kepada siapapun demi keamanan akun Anda."
+            );
+        } catch (\Throwable $e) {
+            Log::error('Fonnte reset PIN OTP failed: '.$e->getMessage(), [
+                'phone' => $member->phone,
+                'exception' => $e,
+            ]);
+
+            return back()->withErrors([
+                'error' => 'Gagal mengirim OTP WhatsApp ('.$e->getMessage().'). Silakan coba beberapa saat lagi.',
+            ]);
+        }
 
         session([
             'reset_pin_otp' => $otp,

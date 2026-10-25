@@ -30,6 +30,7 @@ Route::prefix('app')->name('customer.')->group(function () {
     Route::post('/login', [CustomerAuthController::class, 'sendOtp'])->name('send-otp');
     Route::get('/otp', [CustomerAuthController::class, 'showOtp'])->name('otp');
     Route::post('/otp', [CustomerAuthController::class, 'verifyOtp'])->name('verify-otp');
+    Route::post('/resend-otp', [CustomerAuthController::class, 'resendOtp'])->name('resend-otp');
 
     Route::middleware('auth:customer')->group(function () {
         Route::post('/logout', [CustomerAuthController::class, 'logout'])->name('logout');

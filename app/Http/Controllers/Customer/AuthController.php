@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Customer;
 
 use App\Http\Controllers\Controller;
 use App\Models\Member;
+use App\Services\FonnteService;
 use App\Support\PhoneNumber;
 use Carbon\Carbon;
 use Illuminate\Contracts\View\View;
@@ -11,6 +12,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class AuthController extends Controller
 {
@@ -40,7 +42,7 @@ class AuthController extends Controller
         ]);
     }
 
-    public function sendOtp(Request $request): RedirectResponse
+    public function sendOtp(Request $request, FonnteService $fonnteService): RedirectResponse
     {
         $request->validate([
             'phone' => ['required', 'string'],
@@ -75,7 +77,20 @@ class AuthController extends Controller
         }
 
         $otp = (string) random_int(1000, 9999);
-        $expiresAt = Carbon::now()->addMinutes(5);
+        $expiresAt = Carbon::now()->addMinutes(1);
+
+        try {
+            $fonnteService->sendOTP($normalized, $otp);
+        } catch (\Throwable $e) {
+            Log::error('Fonnte sendOTP failed: '.$e->getMessage(), [
+                'phone' => $normalized,
+                'exception' => $e,
+            ]);
+
+            return back()->withInput()->withErrors([
+                'phone' => 'Gagal mengirim OTP: '.$e->getMessage(),
+            ]);
+        }
 
         session([
             'customer_otp_phone' => $normalized,
@@ -83,10 +98,7 @@ class AuthController extends Controller
             'customer_otp_code' => $otp,
             'customer_otp_expires' => $expiresAt->timestamp,
             'customer_otp_attempts' => 0,
-            'otp_simulated' => [
-                'phone' => PhoneNumber::display($normalized),
-                'code' => $otp,
-            ],
+            'customer_otp_resend_at' => Carbon::now()->addSeconds(60)->timestamp,
         ]);
 
         return redirect()->route('customer.otp');
@@ -98,9 +110,55 @@ class AuthController extends Controller
             return redirect()->route('customer.login');
         }
 
+        $resendAt = (int) session('customer_otp_resend_at', 0);
+        $countdown = max(0, $resendAt - Carbon::now()->timestamp);
+
         return view('customer.auth.otp', [
             'phone' => PhoneNumber::display(session('customer_otp_phone')),
+            'countdown' => $countdown,
         ]);
+    }
+
+    public function resendOtp(FonnteService $fonnteService): RedirectResponse
+    {
+        if (! session()->has('customer_otp_phone')) {
+            return redirect()->route('customer.login');
+        }
+
+        $resendAt = (int) session('customer_otp_resend_at', 0);
+        if (Carbon::now()->timestamp < $resendAt) {
+            $secondsLeft = $resendAt - Carbon::now()->timestamp;
+
+            return redirect()->route('customer.otp')->withErrors([
+                'otp' => "Mohon tunggu {$secondsLeft} detik lagi sebelum mengirim ulang kode OTP.",
+            ]);
+        }
+
+        $phone = session('customer_otp_phone');
+        $otp = (string) random_int(1000, 9999);
+        $expiresAt = Carbon::now()->addMinutes(5);
+
+        try {
+            $fonnteService->sendOTP($phone, $otp);
+        } catch (\Throwable $e) {
+            Log::error('Fonnte resendOtp failed: '.$e->getMessage(), [
+                'phone' => $phone,
+                'exception' => $e,
+            ]);
+
+            return redirect()->route('customer.otp')->withErrors([
+                'otp' => 'Gagal mengirim ulang OTP: '.$e->getMessage(),
+            ]);
+        }
+
+        session([
+            'customer_otp_code' => $otp,
+            'customer_otp_expires' => $expiresAt->timestamp,
+            'customer_otp_attempts' => 0,
+            'customer_otp_resend_at' => Carbon::now()->addSeconds(60)->timestamp,
+        ]);
+
+        return redirect()->route('customer.otp')->with('status', 'Kode OTP baru berhasil dikirim ke WhatsApp Anda.');
     }
 
     public function verifyOtp(Request $request): RedirectResponse
@@ -117,7 +175,7 @@ class AuthController extends Controller
         $expires = session('customer_otp_expires');
 
         if (! $storedPhone || ! $storedCode || ! $expires || Carbon::now()->timestamp > $expires) {
-            session()->forget(['customer_otp_phone', 'customer_otp_name', 'customer_otp_code', 'customer_otp_expires', 'customer_otp_attempts', 'otp_simulated']);
+            session()->forget(['customer_otp_phone', 'customer_otp_name', 'customer_otp_code', 'customer_otp_expires', 'customer_otp_attempts', 'customer_otp_resend_at', 'otp_simulated']);
 
             return redirect()->route('customer.login')->withErrors([
                 'phone' => 'Kode OTP telah kedaluwarsa. Silakan masukkan nomor Anda kembali.',
@@ -130,7 +188,7 @@ class AuthController extends Controller
             $attempts++;
 
             if ($attempts >= 5) {
-                session()->forget(['customer_otp_phone', 'customer_otp_name', 'customer_otp_code', 'customer_otp_expires', 'customer_otp_attempts', 'otp_simulated']);
+                session()->forget(['customer_otp_phone', 'customer_otp_name', 'customer_otp_code', 'customer_otp_expires', 'customer_otp_attempts', 'customer_otp_resend_at', 'otp_simulated']);
 
                 return redirect()->route('customer.login')->withErrors([
                     'phone' => 'Terlalu banyak percobaan salah. Silakan minta kode OTP baru.',
@@ -157,7 +215,7 @@ class AuthController extends Controller
             ]
         );
 
-        session()->forget(['customer_otp_phone', 'customer_otp_name', 'customer_otp_code', 'customer_otp_expires', 'customer_otp_attempts', 'otp_simulated']);
+        session()->forget(['customer_otp_phone', 'customer_otp_name', 'customer_otp_code', 'customer_otp_expires', 'customer_otp_attempts', 'customer_otp_resend_at', 'otp_simulated']);
 
         session()->regenerate();
 
