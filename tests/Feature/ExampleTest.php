@@ -24,15 +24,15 @@ test('the promotional home page shows available menu items, active voucher promo
     $response = $this->get(route('home'));
 
     $response->assertOk()
-        ->assertSeeText('Seduhan kopi segar dan ruang santai untuk hari Anda.')
-        ->assertSeeText('Espresso, Americano, & Kopi Susu Racikan Harian')
+        ->assertSeeText('Ngopi dulu di Soho.')
+        ->assertSeeText('Espresso, Americano, & Kopi Susu')
         ->assertSeeText('Rp 15.000')
         ->assertSeeText('Signature Espresso')
         ->assertSeeText('Kopi Susu Gula Aren')
         ->assertDontSeeText('Cold Brew Habis')
         ->assertSeeText('Potongan Sepuluh Ribu')
         ->assertDontSeeText('Voucher Nonaktif')
-        ->assertSeeText('Gabung Member Gratis')
+        ->assertSeeText('Masuk / Daftar Member')
         ->assertSee(route('guide'), false);
 });
 
@@ -68,7 +68,7 @@ test('both landing pages point signed-in members directly to their digital membe
         ->get(route('home'))
         ->assertOk()
         ->assertSeeText('Buka Kartu Member')
-        ->assertDontSeeText('Gabung Member Gratis');
+        ->assertDontSeeText('Masuk / Daftar Member');
 
     $this->actingAs($member, 'customer')
         ->get(route('guide'))
