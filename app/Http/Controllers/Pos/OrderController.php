@@ -128,11 +128,6 @@ class OrderController extends Controller
         ]);
     }
 
-    /**
-     * The claimed voucher behind a payment, locked and fully re-verified at this
-     * instant: owned by the selected member, still unused and unexpired, paid
-     * for with the right member PIN. The kasir lookup is only for display.
-     */
     private function lockedRedeemableVoucher(OrderRequest $request, Member $member): MemberVoucher
     {
         /** @var MemberVoucher $memberVoucher */

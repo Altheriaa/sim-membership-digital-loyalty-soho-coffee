@@ -88,10 +88,6 @@ class PinController extends Controller
             'reset_pin_otp' => $otp,
             'reset_pin_expires' => $expiresAt->timestamp,
             'reset_pin_attempts' => 0,
-            'otp_simulated' => [
-                'phone' => $member->displayPhone(),
-                'code' => $otp,
-            ],
         ]);
 
         return redirect()->route('customer.pin.reset.form');

@@ -27,10 +27,10 @@ use Illuminate\Support\Facades\Route;
 Route::prefix('app')->name('customer.')->group(function () {
     Route::get('/login', [CustomerAuthController::class, 'showLogin'])->name('login');
     Route::get('/check-phone', [CustomerAuthController::class, 'checkPhone'])->name('check-phone');
-    Route::post('/login', [CustomerAuthController::class, 'sendOtp'])->name('send-otp');
+    Route::middleware('throttle:5,1')->post('/login', [CustomerAuthController::class, 'sendOtp'])->name('send-otp');
     Route::get('/otp', [CustomerAuthController::class, 'showOtp'])->name('otp');
     Route::post('/otp', [CustomerAuthController::class, 'verifyOtp'])->name('verify-otp');
-    Route::post('/resend-otp', [CustomerAuthController::class, 'resendOtp'])->name('resend-otp');
+    Route::middleware('throttle:5,1')->post('/resend-otp', [CustomerAuthController::class, 'resendOtp'])->name('resend-otp');
 
     Route::middleware('auth:customer')->group(function () {
         Route::post('/logout', [CustomerAuthController::class, 'logout'])->name('logout');
@@ -53,6 +53,9 @@ Route::prefix('app')->name('customer.')->group(function () {
     });
 });
 
+Route::get('/', HomeController::class)->name('home');
+Route::get('/petunjuk', [HomeController::class, 'guide'])->name('guide');
+
 Route::middleware('guest')->group(function () {
     Route::get('/login', [SessionController::class, 'create'])->name('login');
     Route::post('/login', [SessionController::class, 'store']);
@@ -61,8 +64,6 @@ Route::middleware('guest')->group(function () {
 Route::post('/logout', [SessionController::class, 'destroy'])->middleware('auth')->name('logout');
 
 Route::middleware('auth')->group(function () {
-    Route::get('/', HomeController::class)->name('home');
-
     Route::middleware('role:cashier,admin,owner')->get('pos/orders/{order}', [OrderController::class, 'show'])->name('pos.orders.show');
 
     Route::middleware('role:cashier,admin')->prefix('pos')->name('pos.')->group(function () {

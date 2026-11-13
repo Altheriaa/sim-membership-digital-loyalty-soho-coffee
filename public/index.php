@@ -5,6 +5,11 @@ use Illuminate\Http\Request;
 
 define('LARAVEL_START', microtime(true));
 
+if (PHP_SAPI === 'cli-server') {
+    ini_set('opcache.revalidate_freq', '0');
+    ini_set('opcache.file_update_protection', '0');
+}
+
 // Determine if the application is in maintenance mode...
 if (file_exists($maintenance = __DIR__.'/../storage/framework/maintenance.php')) {
     require $maintenance;

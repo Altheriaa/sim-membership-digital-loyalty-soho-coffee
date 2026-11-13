@@ -242,6 +242,11 @@
                         <circle cx="80" cy="80" r="54" fill="none" stroke="currentColor" stroke-opacity="0.1"
                             stroke-width="24" />
 
+                        {{-- @foreach ($tiers as $tier)
+                        <div>
+                            {{ $tier->name }}
+                        </div>
+                        @endforeach --}}
                         @if ($totalMembers > 0)
                             {{-- Silver Arc (Base Tier) --}}
                             @if (($tierBreakdown['Silver']['percentage'] ?? 0) > 0)

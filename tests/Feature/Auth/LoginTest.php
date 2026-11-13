@@ -12,9 +12,17 @@ test('login page shows the sign-in form to guests', function () {
         ->assertSee('name="password"', false);
 });
 
-test('guests who open the home page are sent to the login page', function () {
-    $this->get('/')->assertRedirect(route('login'));
-});
+test('signed-in staff who open the home page are sent to the screen that belongs to their role', function (Role $role, string $expectedRoute) {
+    $user = User::factory()->create(['role' => $role]);
+
+    $this->actingAs($user)
+        ->get(route('home'))
+        ->assertRedirect(route($expectedRoute));
+})->with([
+    'owner' => [Role::Owner, 'admin.dashboard'],
+    'admin' => [Role::Admin, 'admin.dashboard'],
+    'cashier' => [Role::Cashier, 'pos.index'],
+]);
 
 test('staff land on the screen that belongs to their role after signing in', function (Role $role, string $expectedRoute) {
     $user = User::factory()->create(['role' => $role, 'email' => 'staff@example.com']);

@@ -88,3 +88,37 @@ body {
     --sidebar-border: 40 5% 17%;
     --sidebar-ring: 46 95% 58%;
 }
+
+/* Receipt motif: dotted leaders, a serrated bottom edge, and a marker stroke on the key point count. */
+@layer components {
+    .leader-row {
+        display: flex;
+        align-items: baseline;
+        gap: 0.5rem;
+    }
+
+    .leader-row > .leader-fill {
+        flex: 1 1 0%;
+        min-width: 1rem;
+        border-bottom: 2px dotted hsl(var(--muted-foreground) / 0.4);
+    }
+
+    .receipt-edge {
+        --tooth: 14px;
+        padding-bottom: calc(var(--tooth) / 2 + 1.25rem);
+        mask: conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) 50% / var(--tooth) 100%;
+    }
+
+    .marker {
+        background: linear-gradient(transparent 58%, hsl(var(--primary)) 58%, hsl(var(--primary)) 92%, transparent 92%);
+        box-decoration-break: clone;
+        -webkit-box-decoration-break: clone;
+        padding-inline: 0.08em;
+    }
+
+    /* Light text over amber fails contrast, so dark mode colors the digits instead. */
+    .dark .marker {
+        background: none;
+        color: hsl(var(--primary));
+    }
+}

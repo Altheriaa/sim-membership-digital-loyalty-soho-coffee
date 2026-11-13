@@ -1,6 +1,7 @@
 import Alpine from 'alpinejs';
 import createTheme from './theme-switcher';
 import posRegister from './pos-register';
+import pointsEstimator from './points-estimator';
 
 window.Alpine = Alpine;
 
@@ -83,6 +84,7 @@ Alpine.store('pwa', {
 });
 
 Alpine.data('posRegister', posRegister);
+Alpine.data('pointsEstimator', pointsEstimator);
 Alpine.start();
 
 if ('serviceWorker' in navigator) {

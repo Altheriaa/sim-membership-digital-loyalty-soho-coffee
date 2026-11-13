@@ -147,7 +147,7 @@
                             @foreach ($bestSellers as $index => $item)
                                 <tr class="hover:bg-accent/40">
                                     <td class="px-4 py-3 font-mono font-medium text-muted-foreground">{{ $index + 1 }}</td>
-                                    <td class="px-4 py-3 font-medium text-foreground">{{ $item->name }}</td>
+                                    <td class="px-4 py-3 font-medium text-foreground">{{ $item->menuItem->name }}</td>
                                     <td class="px-4 py-3 text-center tabular-nums font-semibold text-primary">{{ number_format($item->total_qty) }}</td>
                                     <td class="px-4 py-3 text-right tabular-nums font-medium text-foreground">{{ Rupiah::format($item->total_sales) }}</td>
                                 </tr>

@@ -91,8 +91,8 @@ class ReportController extends Controller
         // Menu Paling Laris (Best Seller)
         $bestSellersQuery = OrderItem::query()
             ->whereHas('order', fn ($q) => $q->whereBetween('created_at', [$startDate, $endDate]))
-            ->selectRaw('name, sum(quantity) as total_qty, sum(line_total) as total_sales')
-            ->groupBy('name')
+            ->selectRaw('menu_item_id, sum(quantity) as total_qty, sum(line_total) as total_sales')
+            ->groupBy('menu_item_id')
             ->orderByDesc('total_qty');
 
         $bestSellers = $paginate ? $bestSellersQuery->limit(10)->get() : $bestSellersQuery->get();

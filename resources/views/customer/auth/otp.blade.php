@@ -32,7 +32,7 @@
                 <a href="{{ route('customer.login') }}" class="hover:text-foreground underline underline-offset-2">
                     Ganti nomor HP
                 </a>
-                <span>Masa aktif 5 menit</span>
+                <span>Masa aktif 1 menit</span>
             </div>
         </form>
 
