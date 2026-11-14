@@ -9,7 +9,9 @@ beforeEach(function () {
 
     $this->actingAs($this->member, 'customer')->post(route('customer.pin.reset.request'));
 
-    $this->resetCode = session('otp_simulated')['code'];
+    $this->resetCode = session('reset_pin_otp');
+    expect($this->resetCode)->toBeString()->toHaveLength(4)
+        ->and(session('otp_simulated'))->toBeNull();
 });
 
 test('mistyped reset otp attempts are limited to five tries', function () {

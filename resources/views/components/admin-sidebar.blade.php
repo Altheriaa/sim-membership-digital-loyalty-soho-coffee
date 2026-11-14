@@ -2,10 +2,11 @@
     $user = auth()->user();
     $isAdmin = $user->hasRole(\App\Role::Admin);
     $isOwner = $user->hasRole(\App\Role::Owner);
+    $isCashier = $user->hasRole(\App\Role::Cashier);
 
     $groups = [
         'Operasional' => array_values(array_filter([
-            ['route' => 'pos.index', 'match' => 'pos.*', 'label' => 'Kasir (POS)', 'icon' => 'monitor', 'allowed' => $isAdmin],
+            ['route' => 'pos.index', 'match' => 'pos.*', 'label' => 'Kasir (POS)', 'icon' => 'monitor', 'allowed' => $isAdmin || $isCashier],
             ['route' => 'admin.reports.index', 'match' => 'admin.reports.*', 'label' => 'Laporan', 'icon' => 'bar-chart-3', 'allowed' => true],
             ['route' => 'admin.menu-items.index', 'match' => 'admin.menu-items.*', 'label' => 'Menu', 'icon' => 'coffee', 'allowed' => $isAdmin],
             ['route' => 'admin.categories.index', 'match' => 'admin.categories.*', 'label' => 'Kategori', 'icon' => 'tag', 'allowed' => $isAdmin],
@@ -42,18 +43,20 @@
     <slot:content
         class="overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden px-2 pb-4 group-data-[collapsible=icon]:px-1.5 group-data-[collapsible=icon]:pb-3.5">
         <nav aria-label="Navigasi utama" class="flex flex-col gap-1.5 pb-1">
-            <april:sidebar-group class="p-1 group-data-[collapsible=icon]:p-0">
-                <april:sidebar-menu class="gap-1.5">
-                    <april:sidebar-menu-item>
-                        <april:sidebar-menu-button-link href="{{ route('admin.dashboard') }}"
-                            :active="request()->routeIs('admin.dashboard')" title="Dashboard"
-                            class="h-11 gap-3 rounded-xl group-data-[collapsible=icon]:size-11! group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:p-0! group-data-[collapsible=icon]:mx-auto group-data-[collapsible=icon]:rounded-xl [&>svg]:size-5! group-data-[collapsible=icon]:[&>svg]:size-5.5!">
-                            <x-lucide-home class="size-5 shrink-0 group-data-[collapsible=icon]:size-5.5" />
-                            <span>Dashboard</span>
-                        </april:sidebar-menu-button-link>
-                    </april:sidebar-menu-item>
-                </april:sidebar-menu>
-            </april:sidebar-group>
+            @if ($isAdmin || $isOwner)
+                <april:sidebar-group class="p-1 group-data-[collapsible=icon]:p-0">
+                    <april:sidebar-menu class="gap-1.5">
+                        <april:sidebar-menu-item>
+                            <april:sidebar-menu-button-link href="{{ route('admin.dashboard') }}"
+                                :active="request()->routeIs('admin.dashboard')" title="Dashboard"
+                                class="h-11 gap-3 rounded-xl group-data-[collapsible=icon]:size-11! group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:p-0! group-data-[collapsible=icon]:mx-auto group-data-[collapsible=icon]:rounded-xl [&>svg]:size-5! group-data-[collapsible=icon]:[&>svg]:size-5.5!">
+                                <x-lucide-home class="size-5 shrink-0 group-data-[collapsible=icon]:size-5.5" />
+                                <span>Dashboard</span>
+                            </april:sidebar-menu-button-link>
+                        </april:sidebar-menu-item>
+                    </april:sidebar-menu>
+                </april:sidebar-group>
+            @endif
 
             @foreach ($groups as $heading => $links)
                 @if (count($links) > 0)

@@ -7,7 +7,7 @@ test('login page shows the sign-in form to guests', function () {
     $response = $this->get(route('login'));
 
     $response->assertOk()
-        ->assertSeeText('Masuk ke back office')
+        ->assertSeeText('Masuk sebagai Admin, Owner, atau Kasir')
         ->assertSee('name="email"', false)
         ->assertSee('name="password"', false);
 });

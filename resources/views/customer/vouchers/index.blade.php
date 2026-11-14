@@ -1,35 +1,36 @@
+@php
+    $focus = 'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground';
+@endphp
+
 <x-layouts.customer title="Kupon Saya">
-    <div class="flex flex-col gap-5">
-        <header class="flex flex-col gap-1">
-            <h1 class="font-serif text-xl font-bold tracking-tight text-foreground sm:text-2xl">Dompet Kupon Saya</h1>
-            <p class="text-xs text-muted-foreground">Voucer digital yang telah Anda klaim dan siap digunakan di kasir.</p>
+    <div class="flex flex-col gap-4">
+        <header class="flex flex-col gap-0.5">
+            <h1 class="text-xl font-extrabold tracking-tight text-foreground">Dompet Kupon Saya</h1>
+            <p class="text-xs text-muted-foreground">Tunjukkan kode klaim kupon di bawah kepada kasir saat membayar.</p>
         </header>
 
-        <!-- Filter Tab Aktif / Riwayat -->
-        <div class="flex rounded-lg border border-border bg-card p-1 text-xs" role="tablist">
-            <a
-                href="{{ route('customer.vouchers.index', ['tab' => 'active']) }}"
-                class="flex flex-1 items-center justify-center gap-1.5 rounded-md py-2 font-medium transition-colors {{ $tab === 'active' ? 'bg-primary text-primary-foreground font-semibold shadow-xs' : 'text-muted-foreground hover:text-foreground' }}"
-            >
+        {{-- Segmented Control: Siap Dipakai vs Riwayat --}}
+        <div class="grid grid-cols-2 gap-1 rounded-xl border border-border bg-secondary p-1 text-xs" role="tablist">
+            <a href="{{ route('customer.vouchers.index', ['tab' => 'active']) }}"
+                class="flex min-h-11 items-center justify-center gap-1.5 rounded-lg px-3 py-1.5 transition-colors {{ $tab === 'active' ? 'bg-card font-bold text-foreground shadow-2xs' : 'font-medium text-muted-foreground hover:text-foreground' }} {{ $focus }}">
                 <span>Siap Dipakai</span>
-                <span class="rounded-full px-1.5 py-0.2 text-[10px] {{ $tab === 'active' ? 'bg-primary-foreground/20 text-primary-foreground' : 'bg-secondary text-secondary-foreground' }}">{{ $activeCount }}</span>
+                <span class="rounded-md px-1.5 py-0.5 font-mono text-[10px] font-bold tabular-nums {{ $tab === 'active' ? 'bg-primary text-primary-foreground' : 'bg-background text-muted-foreground' }}">{{ $activeCount }}</span>
             </a>
-            <a
-                href="{{ route('customer.vouchers.index', ['tab' => 'history']) }}"
-                class="flex flex-1 items-center justify-center gap-1.5 rounded-md py-2 font-medium transition-colors {{ $tab === 'history' ? 'bg-primary text-primary-foreground font-semibold shadow-xs' : 'text-muted-foreground hover:text-foreground' }}"
-            >
-                <span>Riwayat / Terpakai</span>
-                <span class="rounded-full px-1.5 py-0.2 text-[10px] {{ $tab === 'history' ? 'bg-primary-foreground/20 text-primary-foreground' : 'bg-secondary text-secondary-foreground' }}">{{ $historyCount }}</span>
+            <a href="{{ route('customer.vouchers.index', ['tab' => 'history']) }}"
+                class="flex min-h-11 items-center justify-center gap-1.5 rounded-lg px-3 py-1.5 transition-colors {{ $tab === 'history' ? 'bg-card font-bold text-foreground shadow-2xs' : 'font-medium text-muted-foreground hover:text-foreground' }} {{ $focus }}">
+                <span>Riwayat</span>
+                <span class="rounded-md px-1.5 py-0.5 font-mono text-[10px] font-bold tabular-nums {{ $tab === 'history' ? 'bg-primary text-primary-foreground' : 'bg-background text-muted-foreground' }}">{{ $historyCount }}</span>
             </a>
         </div>
 
         @if ($vouchers->isEmpty())
-            <div class="rounded-lg border border-dashed border-border p-8 text-center text-xs text-muted-foreground flex flex-col items-center gap-3">
-                <p>
-                    {{ $tab === 'active' ? 'Anda belum memiliki kupon aktif saat ini.' : 'Belum ada riwayat kupon yang terpakai atau kedaluwarsa.' }}
+            <div class="flex flex-col items-start gap-3 rounded-xl border border-dashed border-input bg-card p-5 text-xs">
+                <p class="leading-relaxed text-muted-foreground">
+                    {{ $tab === 'active' ? 'Belum ada kupon aktif di dompet Anda saat ini. Tukarkan poin Anda di Katalog Reward untuk mendapatkan kupon potongan harga atau menu gratis.' : 'Belum ada riwayat kupon yang sudah dipakai atau kedaluwarsa.' }}
                 </p>
                 @if ($tab === 'active')
-                    <a href="{{ route('customer.rewards.index') }}" class="text-xs font-semibold text-primary underline underline-offset-4">
+                    <a href="{{ route('customer.rewards.index') }}"
+                        class="inline-flex min-h-11 items-center justify-center rounded-lg border border-foreground bg-primary px-4 text-xs font-extrabold text-primary-foreground transition-colors hover:bg-primary/90 dark:border-primary {{ $focus }}">
                         Buka Katalog Reward
                     </a>
                 @endif
@@ -37,39 +38,42 @@
         @else
             <div class="flex flex-col gap-3">
                 @foreach ($vouchers as $voucher)
-                    <article class="flex flex-col justify-between gap-3 rounded-lg border border-border bg-card p-4 text-card-foreground shadow-xs">
-                        <div class="flex items-start justify-between gap-2">
-                            <div>
-                                <span class="rounded bg-secondary px-2 py-0.5 text-[10px] font-medium text-secondary-foreground">
-                                    {{ $voucher->voucher->type->label() }}
+                    <article class="overflow-hidden rounded-xl border border-border bg-card text-card-foreground">
+                        <div class="p-4">
+                            <div class="flex items-start justify-between gap-2">
+                                <div>
+                                    <span class="rounded-md bg-secondary px-2 py-0.5 text-[10px] font-bold text-secondary-foreground">
+                                        {{ $voucher->voucher->type->label() }}
+                                    </span>
+                                    <h2 class="mt-1.5 text-base font-extrabold tracking-tight text-foreground">{{ $voucher->voucher->name }}</h2>
+                                </div>
+
+                                <span class="rounded-md px-2 py-0.5 text-[10px] font-bold {{ $voucher->statusLabel() === 'Siap Digunakan' ? 'bg-emerald-500/15 text-emerald-800 dark:text-emerald-300' : 'bg-secondary text-muted-foreground' }}">
+                                    {{ $voucher->statusLabel() }}
                                 </span>
-                                <h2 class="mt-1 font-serif text-base font-semibold leading-snug text-foreground">{{ $voucher->voucher->name }}</h2>
                             </div>
 
-                            <span class="rounded px-2 py-0.5 text-[10px] font-bold {{ $voucher->statusLabel() === 'Siap Digunakan' ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400' : 'bg-muted text-muted-foreground' }}">
-                                {{ $voucher->statusLabel() }}
-                            </span>
-                        </div>
-
-                        <!-- Barcode & Kode Klaim -->
-                        <div class="flex items-center justify-between rounded-md border border-dashed border-border bg-background p-2.5">
-                            <div>
-                                <span class="text-[10px] text-muted-foreground">Kode Klaim:</span>
-                                <p class="font-mono text-base font-bold tracking-widest text-primary">{{ $voucher->code }}</p>
+                            {{-- Cashier Claim Code Ticket Box --}}
+                            <div class="mt-3 flex items-center justify-between rounded-lg border border-dashed border-input bg-background px-3.5 py-2.5">
+                                <div>
+                                    <span class="text-[10px] font-semibold text-muted-foreground">Kode Kasir</span>
+                                    <p class="font-mono text-base font-extrabold tracking-widest text-foreground">{{ $voucher->code }}</p>
+                                </div>
+                                <div class="text-right text-[11px]">
+                                    <span class="text-muted-foreground">Masa Berlaku</span>
+                                    <p class="font-bold text-foreground">{{ $voucher->remainingTime() }}</p>
+                                </div>
                             </div>
-                            <div class="text-right text-[11px]">
-                                <span class="text-muted-foreground">Berlaku:</span>
-                                <p class="font-semibold text-foreground">{{ $voucher->remainingTime() }}</p>
-                            </div>
-                        </div>
 
-                        <div class="flex items-center justify-between pt-1 text-xs">
-                            <span class="text-[11px] text-muted-foreground">
-                                {{ $voucher->points_spent }} poin ditukarkan
-                            </span>
-                            <a href="{{ route('customer.vouchers.show', $voucher) }}" class="font-semibold text-primary hover:underline">
-                                Lihat detail kupon
-                            </a>
+                            <div class="mt-3 flex items-center justify-between text-xs">
+                                <span class="font-mono text-[11px] text-muted-foreground tabular-nums">
+                                    Ditukar {{ $voucher->points_spent }} poin
+                                </span>
+                                <a href="{{ route('customer.vouchers.show', $voucher) }}"
+                                    class="rounded-md px-1 py-0.5 font-bold text-foreground underline underline-offset-4 hover:text-muted-foreground {{ $focus }}">
+                                    Buka kupon &rsaquo;
+                                </a>
+                            </div>
                         </div>
                     </article>
                 @endforeach

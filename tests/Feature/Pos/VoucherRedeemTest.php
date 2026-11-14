@@ -10,7 +10,10 @@ use App\Models\Voucher;
 
 function signInAsCashier(): User
 {
-    return test()->actingAs(User::factory()->cashier()->create());
+    $cashier = User::factory()->cashier()->create();
+    test()->actingAs($cashier);
+
+    return $cashier;
 }
 
 beforeEach(function () {
@@ -135,14 +138,14 @@ test('paying with a member voucher discounts the order and consumes the voucher'
     $order = Order::query()->sole();
 
     expect($order->subtotal)->toBe(40000)
-        ->and($order->tax_amount)->toBe(4400)
+        ->and($order->tax_amount)->toBe(2200)
         ->and($order->discount_amount)->toBe(20000)
-        ->and($order->total)->toBe(24400)
+        ->and($order->total)->toBe(22200)
         ->and($order->cash_received)->toBe(100000)
-        ->and($order->change_due)->toBe(75600)
+        ->and($order->change_due)->toBe(77800)
         ->and($order->voucher_id)->toBe($claimed->id)
-        ->and($order->points_earned)->toBe(4)
-        ->and($order->member_points_after)->toBe(504);
+        ->and($order->points_earned)->toBe(2)
+        ->and($order->member_points_after)->toBe(502);
 
     $claimed->refresh();
 
@@ -152,7 +155,8 @@ test('paying with a member voucher discounts the order and consumes the voucher'
 
     $member->refresh();
 
-    expect($member->points_balance)->toBe(504);
+    expect($member->points_balance)->toBe(502)
+        ->and($member->lifetime_spend)->toBe(20000);
 });
 
 test('a discount amount voucher takes its nominal value off the total', function () {
@@ -176,7 +180,8 @@ test('a discount amount voucher takes its nominal value off the total', function
     $order = Order::query()->sole();
 
     expect($order->discount_amount)->toBe(15000)
-        ->and($order->total)->toBe(29400);
+        ->and($order->tax_amount)->toBe(2750)
+        ->and($order->total)->toBe(27750);
 });
 
 test('a voucher never discounts more than the subtotal', function () {
@@ -200,7 +205,8 @@ test('a voucher never discounts more than the subtotal', function () {
     $order = Order::query()->sole();
 
     expect($order->discount_amount)->toBe(40000)
-        ->and($order->total)->toBe(4400);
+        ->and($order->tax_amount)->toBe(0)
+        ->and($order->total)->toBe(0);
 });
 
 test('a wrong member pin blocks the sale and the voucher stays claimable again', function () {

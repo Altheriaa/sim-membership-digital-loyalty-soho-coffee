@@ -1,78 +1,80 @@
 @use('App\Support\Rupiah')
 
+@php
+    $focus = 'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground';
+@endphp
+
 <x-layouts.customer :title="'Kupon · ' . $voucher->code">
-    <div class="flex flex-col gap-5">
+    <div class="flex flex-col gap-4">
         <div class="flex items-center justify-between">
-            <a href="{{ route('customer.vouchers.index') }}" class="text-xs text-muted-foreground hover:text-foreground">
-                Kembali ke Kupon Saya
+            <a href="{{ route('customer.vouchers.index') }}"
+                class="inline-flex min-h-11 items-center rounded-lg border border-border bg-card px-3.5 text-xs font-bold text-foreground transition-colors hover:bg-accent {{ $focus }}">
+                &lsaquo; Dompet Kupon
             </a>
-            <span class="rounded px-2 py-0.5 text-[10px] font-bold {{ $voucher->statusLabel() === 'Siap Digunakan' ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400' : 'bg-muted text-muted-foreground' }}">
+            <span class="rounded-md px-2.5 py-1 text-[11px] font-bold {{ $voucher->statusLabel() === 'Siap Digunakan' ? 'bg-emerald-500/15 text-emerald-800 dark:text-emerald-300' : 'bg-secondary text-muted-foreground' }}">
                 {{ $voucher->statusLabel() }}
             </span>
         </div>
 
-        <!-- Tiket Digital Kupon -->
-        <article class="relative overflow-hidden rounded-xl border border-border bg-card p-6 text-card-foreground shadow-md flex flex-col gap-5">
-            <div class="flex flex-col items-center text-center gap-1 border-b border-dashed border-border pb-4">
-                <span class="rounded-full bg-secondary px-2.5 py-0.5 text-[10px] font-semibold text-secondary-foreground">
+        {{-- Perforated Voucher Pass --}}
+        <article class="relative overflow-hidden rounded-2xl border border-border bg-card text-card-foreground">
+            <div class="p-5 text-center">
+                <span class="inline-block rounded-md bg-secondary px-2.5 py-0.5 text-[10px] font-bold text-secondary-foreground">
                     {{ $voucher->voucher->type->label() }}
                 </span>
-                <h1 class="mt-2 font-serif text-xl font-bold tracking-tight text-foreground sm:text-2xl">
+                <h1 class="mt-2 text-xl font-extrabold tracking-tight text-foreground">
                     {{ $voucher->voucher->name }}
                 </h1>
                 @if ($voucher->voucher->menuItem)
-                    <p class="text-xs text-muted-foreground">Berlaku untuk 1 porsi <strong class="text-foreground">{{ $voucher->voucher->menuItem->name }}</strong></p>
+                    <p class="mt-1 text-xs text-muted-foreground">Gratis 1 porsi <strong class="font-bold text-foreground">{{ $voucher->voucher->menuItem->name }}</strong></p>
                 @elseif ($voucher->voucher->discount_amount > 0)
-                    <p class="text-xs text-muted-foreground">Diskon potongan harga senilai <strong class="text-foreground">{{ Rupiah::format($voucher->voucher->discount_amount) }}</strong></p>
+                    <p class="mt-1 text-xs text-muted-foreground">Potongan harga <strong class="font-mono font-bold text-foreground">{{ Rupiah::format($voucher->voucher->discount_amount) }}</strong></p>
                 @endif
+
+                {{-- High-Contrast Claim Code Box --}}
+                <div class="mt-4 rounded-xl bg-[#1F1D19] p-5 text-[#F5F4EF]">
+                    <span class="text-[11px] font-semibold text-[#D8D6CF]">Sebutkan atau tunjukkan kode ini di kasir</span>
+                    <p class="mt-1 font-mono text-3xl font-extrabold tracking-widest text-[#F5B60A]">{{ $voucher->code }}</p>
+                </div>
             </div>
 
-            <!-- Kode Klaim Besar -->
-            <div class="flex flex-col items-center justify-center gap-2 rounded-lg bg-background p-5 border border-border">
-                <span class="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Kode Klaim Kasir</span>
-                <p class="font-mono text-3xl font-extrabold tracking-widest text-primary">{{ $voucher->code }}</p>
-
-                <!-- Barcode Simulation -->
-                <div class="mt-2 flex h-10 w-48 items-center justify-center gap-1" aria-hidden="true">
-                    @for ($i = 0; $i < 30; $i++)
-                        <div class="h-full bg-foreground" style="width: {{ ($i % 3 === 0) ? '3px' : (($i % 2 === 0) ? '1.5px' : '2px') }}"></div>
-                    @endfor
-                </div>
-                <span class="text-[10px] text-muted-foreground">Scan / ketik kode ini di mesin kasir</span>
+            {{-- Perforated Tear Line --}}
+            <div class="relative flex items-center justify-between" aria-hidden="true">
+                <span class="-ml-3 size-6 rounded-full bg-background"></span>
+                <span class="w-full border-t-2 border-dashed border-border"></span>
+                <span class="-mr-3 size-6 rounded-full bg-background"></span>
             </div>
 
-            <!-- Info Kedaluwarsa & Waktu -->
-            <div class="flex flex-col gap-2 border-t border-dashed border-border pt-3 text-xs">
-                <div class="flex justify-between items-center">
-                    <span class="text-muted-foreground">Sisa Waktu:</span>
-                    <span class="font-semibold text-foreground">{{ $voucher->remainingTime() }}</span>
+            <div class="flex flex-col gap-2.5 p-5 text-xs">
+                <div class="leader-row">
+                    <span class="text-muted-foreground">Sisa Waktu</span>
+                    <span class="leader-fill" aria-hidden="true"></span>
+                    <span class="font-bold text-foreground">{{ $voucher->remainingTime() }}</span>
                 </div>
-                <div class="flex justify-between items-center text-[11px]">
-                    <span class="text-muted-foreground">Berlaku Sampai:</span>
-                    <span class="tabular-nums text-foreground">{{ $voucher->expires_at->translatedFormat('d F Y, H:i') }}</span>
+                <div class="leader-row">
+                    <span class="text-muted-foreground">Berlaku Sampai</span>
+                    <span class="leader-fill" aria-hidden="true"></span>
+                    <span class="font-mono text-foreground tabular-nums">{{ $voucher->expires_at->translatedFormat('d M Y, H:i') }}</span>
                 </div>
-                <div class="flex justify-between items-center text-[11px]">
-                    <span class="text-muted-foreground">Poin Terpakai:</span>
-                    <span class="tabular-nums text-primary font-medium">{{ $voucher->points_spent }} poin</span>
+                <div class="leader-row">
+                    <span class="text-muted-foreground">Poin Ditukarkan</span>
+                    <span class="leader-fill" aria-hidden="true"></span>
+                    <span class="font-mono font-bold text-foreground tabular-nums">{{ $voucher->points_spent }} poin</span>
                 </div>
                 @if ($voucher->status === 'used' && $voucher->order)
-                    <div class="flex justify-between items-center text-[11px]">
-                        <span class="text-muted-foreground">Digunakan Pada Transaksi:</span>
-                        <a href="{{ route('customer.receipt', $voucher->order) }}" class="font-mono text-primary underline">
+                    <div class="leader-row">
+                        <span class="text-muted-foreground">Dipakai pada Struk</span>
+                        <span class="leader-fill" aria-hidden="true"></span>
+                        <a href="{{ route('customer.receipt', $voucher->order) }}" class="font-mono font-bold text-foreground underline">
                             {{ $voucher->order->number }}
                         </a>
                     </div>
                 @endif
-            </div>
 
-            <!-- Petunjuk Pemakaian -->
-            <div class="rounded bg-secondary/50 p-3 text-[11px] text-muted-foreground">
-                <p class="font-semibold text-foreground">Syarat & Ketentuan:</p>
-                <ul class="mt-1 list-disc list-inside space-y-0.5">
-                    <li>Kupon hanya dapat digunakan 1 kali di kasir cafe.</li>
-                    <li>Wajib memasukkan 6-digit PIN Keamanan saat kasir memproses voucer.</li>
-                    <li>Kupon yang kedaluwarsa tidak dapat ditukarkan kembali menjadi poin.</li>
-                </ul>
+                <div class="mt-2 rounded-lg bg-secondary/70 p-3 text-[11px] leading-relaxed text-muted-foreground">
+                    <p class="font-bold text-foreground">Ketentuan Pemakaian di Kasir:</p>
+                    <p class="mt-0.5">Kupon berlaku untuk 1 kali transaksi dan memerlukan 6-digit PIN Keamanan Anda saat kasir memasukkan kode klaim.</p>
+                </div>
             </div>
         </article>
     </div>

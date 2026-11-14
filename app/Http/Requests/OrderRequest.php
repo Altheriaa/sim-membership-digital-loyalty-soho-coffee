@@ -27,6 +27,7 @@ class OrderRequest extends FormRequest
             'items.*.id' => ['required', 'integer', 'distinct', Rule::exists('menu_items', 'id')],
             'items.*.quantity' => ['required', 'integer', 'min:1', 'max:'.self::MAX_QUANTITY],
             'member_id' => ['nullable', 'integer', Rule::exists('members', 'id')],
+            'points_to_redeem' => ['nullable', 'integer', 'min:0'],
             'voucher_id' => [
                 'nullable',
                 'integer',

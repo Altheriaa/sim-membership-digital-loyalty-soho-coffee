@@ -1,58 +1,64 @@
 @use('App\Support\Rupiah')
 
+@php
+    $focus = 'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground';
+@endphp
+
 <x-layouts.customer title="Riwayat Transaksi">
-    <div class="flex flex-col gap-5">
-        <header class="flex flex-col gap-1">
-            <h1 class="font-serif text-xl font-bold tracking-tight text-foreground sm:text-2xl">Riwayat Transaksi</h1>
-            <p class="text-xs text-muted-foreground">Catatan struk belanja kasir dan mutasi poin keanggotaan Anda.</p>
+    <div class="flex flex-col gap-4">
+        <header class="flex flex-col gap-0.5">
+            <h1 class="text-xl font-extrabold tracking-tight text-foreground">Riwayat Transaksi</h1>
+            <p class="text-xs text-muted-foreground">Arsip struk belanja kasir dan catatan keluar-masuk poin.</p>
         </header>
 
-        <!-- Pilihan Tab: Belanja vs Poin -->
-        <div class="flex rounded-lg border border-border bg-card p-1 text-xs" role="tablist">
-            <a
-                href="{{ route('customer.history.index', ['tab' => 'orders']) }}"
-                class="flex flex-1 items-center justify-center py-2 font-medium transition-colors {{ $tab === 'orders' ? 'bg-primary text-primary-foreground font-semibold shadow-xs' : 'text-muted-foreground hover:text-foreground' }}"
-            >
+        {{-- Segmented Control: Struk Belanja vs Mutasi Poin --}}
+        <div class="grid grid-cols-2 gap-1 rounded-xl border border-border bg-secondary p-1 text-xs" role="tablist">
+            <a href="{{ route('customer.history.index', ['tab' => 'orders']) }}"
+                class="flex min-h-11 items-center justify-center rounded-lg px-3 py-1.5 transition-colors {{ $tab === 'orders' ? 'bg-card font-bold text-foreground shadow-2xs' : 'font-medium text-muted-foreground hover:text-foreground' }} {{ $focus }}">
                 Struk Belanja
             </a>
-            <a
-                href="{{ route('customer.history.index', ['tab' => 'points']) }}"
-                class="flex flex-1 items-center justify-center py-2 font-medium transition-colors {{ $tab === 'points' ? 'bg-primary text-primary-foreground font-semibold shadow-xs' : 'text-muted-foreground hover:text-foreground' }}"
-            >
+            <a href="{{ route('customer.history.index', ['tab' => 'points']) }}"
+                class="flex min-h-11 items-center justify-center rounded-lg px-3 py-1.5 transition-colors {{ $tab === 'points' ? 'bg-card font-bold text-foreground shadow-2xs' : 'font-medium text-muted-foreground hover:text-foreground' }} {{ $focus }}">
                 Mutasi Poin
             </a>
         </div>
 
         @if ($tab === 'orders')
-            <!-- Daftar Pesanan / Struk Belanja -->
             @if ($orders->isEmpty())
-                <div class="rounded-lg border border-dashed border-border p-8 text-center text-xs text-muted-foreground">
-                    Belum ada riwayat transaksi belanja.
+                <div class="rounded-xl border border-dashed border-input bg-card p-5 text-xs leading-relaxed text-muted-foreground">
+                    Belum ada struk belanja yang tercatat. Sebutkan nomor WhatsApp Anda di kasir saat memesan supaya struk dan poin masuk ke akun ini.
                 </div>
             @else
-                <div class="flex flex-col gap-3">
+                <div class="flex flex-col gap-2.5">
                     @foreach ($orders as $order)
-                        <article class="flex flex-col justify-between gap-3 rounded-lg border border-border bg-card p-4 text-card-foreground shadow-xs">
-                            <div class="flex items-start justify-between">
-                                <div>
-                                    <span class="font-mono text-xs font-bold text-foreground">{{ $order->number }}</span>
-                                    <p class="text-[11px] text-muted-foreground">{{ $order->created_at->translatedFormat('d M Y, H:i') }}</p>
-                                    <p class="text-[11px] text-muted-foreground">Kasir: {{ $order->cashier->name }}</p>
+                        <article class="rounded-xl border border-border bg-card p-4 text-card-foreground">
+                            <div class="leader-row text-xs">
+                                <div class="flex items-center gap-2">
+                                    <span class="font-mono font-extrabold text-foreground">{{ $order->number }}</span>
+                                    @if ($order->isVoided())
+                                        <span class="rounded border border-red-300 bg-red-100 px-1.5 py-0.5 text-[10px] font-bold text-red-900 dark:border-red-800 dark:bg-red-950/70 dark:text-red-200">
+                                            Dibatalkan
+                                        </span>
+                                    @endif
                                 </div>
-                                <div class="text-right">
-                                    <p class="font-serif text-sm font-bold text-foreground tabular-nums">{{ Rupiah::format($order->total) }}</p>
-                                    <span class="rounded bg-secondary px-1.5 py-0.5 text-[10px] font-medium text-secondary-foreground">
-                                        {{ $order->payment_method->label() }}
-                                    </span>
-                                </div>
+                                <span class="leader-fill" aria-hidden="true"></span>
+                                <span class="font-mono text-sm font-extrabold tabular-nums {{ $order->isVoided() ? 'line-through text-muted-foreground' : 'text-foreground' }}">{{ Rupiah::format($order->total) }}</span>
                             </div>
 
-                            <div class="flex items-center justify-between border-t border-border/60 pt-2 text-xs">
-                                <span class="font-medium text-primary text-[11px] tabular-nums">
+                            <div class="mt-1.5 flex items-center justify-between text-[11px] text-muted-foreground">
+                                <span>{{ $order->created_at->translatedFormat('d M Y, H:i') }} · {{ $order->cashier->name }}</span>
+                                <span class="rounded-md bg-secondary px-2 py-0.5 text-[10px] font-bold text-secondary-foreground">
+                                    {{ $order->payment_method->label() }}
+                                </span>
+                            </div>
+
+                            <div class="mt-3 flex items-center justify-between border-t border-border/70 pt-2.5 text-xs">
+                                <span class="font-mono text-[11px] font-bold text-foreground tabular-nums">
                                     +{{ number_format($order->points_earned) }} poin
                                 </span>
-                                <a href="{{ route('customer.receipt', $order) }}" class="font-medium text-primary hover:underline">
-                                    Lihat E-Receipt
+                                <a href="{{ route('customer.receipt', $order) }}"
+                                    class="rounded-md px-1 py-0.5 font-bold text-foreground underline underline-offset-4 hover:text-muted-foreground {{ $focus }}">
+                                    Buka E-Receipt &rsaquo;
                                 </a>
                             </div>
                         </article>
@@ -62,25 +68,24 @@
                 <x-pagination :paginator="$orders" />
             @endif
         @else
-            <!-- Daftar Mutasi Poin -->
             @if ($pointTransactions->isEmpty())
-                <div class="rounded-lg border border-dashed border-border p-8 text-center text-xs text-muted-foreground">
-                    Belum ada riwayat mutasi poin.
+                <div class="rounded-xl border border-dashed border-input bg-card p-5 text-xs leading-relaxed text-muted-foreground">
+                    Belum ada catatan mutasi poin. Riwayat perolehan poin dari belanja maupun penukaran voucer akan tampil di sini.
                 </div>
             @else
-                <div class="overflow-hidden rounded-lg border border-border bg-card shadow-xs">
+                <div class="overflow-hidden rounded-xl border border-border bg-card">
                     <ul class="divide-y divide-border">
                         @foreach ($pointTransactions as $tx)
-                            <li class="flex items-center justify-between p-3.5 text-xs">
-                                <div class="min-w-0 pr-3">
-                                    <p class="font-medium text-foreground truncate">{{ $tx->description }}</p>
-                                    <p class="text-[11px] text-muted-foreground">{{ $tx->created_at->translatedFormat('d M Y, H:i') }}</p>
+                            <li class="flex items-center justify-between gap-3 p-4 text-xs">
+                                <div class="min-w-0">
+                                    <p class="truncate font-bold text-foreground">{{ $tx->description }}</p>
+                                    <p class="mt-0.5 text-[11px] text-muted-foreground">{{ $tx->created_at->translatedFormat('d M Y, H:i') }}</p>
                                 </div>
-                                <div class="text-right shrink-0">
-                                    <p class="font-bold tabular-nums {{ $tx->points >= 0 ? 'text-primary' : 'text-destructive' }}">
-                                        {{ $tx->points >= 0 ? '+' : '' }}{{ number_format($tx->points) }}
+                                <div class="shrink-0 text-right">
+                                    <p class="font-mono text-sm font-extrabold tabular-nums {{ $tx->points >= 0 ? 'text-foreground' : 'text-destructive' }}">
+                                        {{ $tx->points >= 0 ? '+' : '' }}{{ number_format($tx->points) }} poin
                                     </p>
-                                    <p class="text-[10px] text-muted-foreground tabular-nums">Saldo: {{ number_format($tx->balance_after) }}</p>
+                                    <p class="font-mono text-[10px] text-muted-foreground tabular-nums">Saldo: {{ number_format($tx->balance_after) }}</p>
                                 </div>
                             </li>
                         @endforeach

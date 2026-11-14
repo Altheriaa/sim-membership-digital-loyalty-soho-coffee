@@ -2,6 +2,7 @@
 
 use App\Models\Member;
 use App\Models\MemberVoucher;
+use App\Models\MenuItem;
 use App\Models\PointTransaction;
 use App\Models\Voucher;
 

@@ -5,7 +5,7 @@
     $navLinks = ['#hitung' => 'Hitung poin', '#cara-kerja' => 'Cara kerja', '#tier' => 'Tingkat member', '#reward' => 'Reward', '#lokasi' => 'Lokasi'];
     $themeModes = ['system' => 'Sistem', 'light' => 'Terang', 'dark' => 'Gelap'];
     $memberCta = $isMember
-        ? ['href' => route('customer.dashboard'), 'label' => 'Buka kartu member saya', 'short' => 'Kartu saya']
+        ? ['href' => route('customer.dashboard'), 'label' => 'Buka kartu member saya', 'short' => 'Member saya']
         : ['href' => route('customer.login'), 'label' => 'Daftar atau masuk dengan WhatsApp', 'short' => 'Daftar'];
     $spendStep = Rupiah::format($settings->spend_per_point);
     $tierCount = $tiers->count();

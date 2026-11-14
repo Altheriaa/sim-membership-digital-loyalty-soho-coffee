@@ -1,83 +1,106 @@
 @use('App\Support\Rupiah')
 
-<x-layouts.customer title="Katalog Reward & Klaim Voucer">
-    <div class="flex flex-col gap-5">
-        <!-- Header & Saldo Poin -->
-        <header class="flex items-center justify-between border-b border-border pb-3">
+@php
+    $focus = 'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground';
+@endphp
+
+<x-layouts.customer title="Katalog Reward">
+    <div class="flex flex-col gap-4">
+        {{-- Top Summary Strip --}}
+        <header class="flex items-end justify-between gap-3 border-b border-border pb-3.5">
             <div>
-                <h1 class="font-serif text-xl font-bold tracking-tight text-foreground sm:text-2xl">Katalog Reward</h1>
-                <p class="text-xs text-muted-foreground">Tukarkan poin belanja Anda menjadi voucer digital.</p>
+                <h1 class="text-xl font-extrabold tracking-tight text-foreground">Katalog Reward</h1>
+                <p class="mt-0.5 text-xs text-muted-foreground">Tukarkan saldo poin Anda menjadi kupon kasir.</p>
             </div>
-            <div class="rounded-lg border border-primary/20 bg-primary/5 px-3 py-1.5 text-right">
-                <span class="text-[10px] text-muted-foreground">Saldo Anda</span>
-                <p class="font-serif text-sm font-bold text-primary tabular-nums">{{ number_format($member->points_balance) }} poin</p>
+            <div class="shrink-0 rounded-xl bg-[#1F1D19] px-3.5 py-2 text-right text-[#F5F4EF]">
+                <span class="block text-[10px] text-[#D8D6CF]">Saldo Poin</span>
+                <p class="font-mono text-base font-extrabold text-[#F5B60A] tabular-nums">
+                    {{ number_format($member->points_balance) }} <span class="font-sans text-[11px] font-semibold text-[#D8D6CF]">poin</span>
+                </p>
             </div>
         </header>
 
         @error('claim')
-            <div class="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs text-destructive">
+            <div role="alert" class="rounded-xl border border-destructive/40 bg-destructive/10 px-3.5 py-2.5 text-xs font-semibold text-destructive">
                 {{ $message }}
             </div>
         @enderror
 
-        <!-- Daftar Voucer & Promosi -->
         @if ($vouchers->isEmpty())
-            <div class="rounded-lg border border-dashed border-border p-8 text-center text-xs text-muted-foreground">
-                Saat ini belum ada voucer promosi yang tersedia untuk ditukarkan. Silakan cek kembali nanti!
+            <div class="rounded-xl border border-dashed border-input bg-card p-6 text-xs leading-relaxed text-muted-foreground">
+                Belum ada voucer promosi yang dibuka saat ini. Poin dari setiap transaksi Anda di kasir tetap tersimpan dan bisa ditukar begitu reward baru tersedia.
             </div>
         @else
-            <div class="flex flex-col gap-3.5">
+            <div class="flex flex-col gap-3">
                 @foreach ($vouchers as $voucher)
                     @php
                         $canClaim = $member->points_balance >= $voucher->points_cost && ($voucher->quota === null || $voucher->quota > 0);
+                        $shortfall = max(0, $voucher->points_cost - $member->points_balance);
                     @endphp
-                    <article class="flex flex-col justify-between gap-3 rounded-lg border border-border bg-card p-4 text-card-foreground shadow-xs">
-                        <div class="flex items-start justify-between gap-3">
-                            <div class="min-w-0">
-                                <span class="rounded bg-secondary px-2 py-0.5 text-[10px] font-medium text-secondary-foreground">
-                                    {{ $voucher->type->label() }}
+                    <article class="overflow-hidden rounded-xl border border-border bg-card text-card-foreground">
+                        <div class="flex items-stretch">
+                            {{-- Left Ticket Stub with Point Cost --}}
+                            <div class="flex w-24 shrink-0 flex-col items-center justify-center border-r-2 border-dashed border-border bg-[#1F1D19] px-2.5 py-4 text-center text-[#F5F4EF]">
+                                <span class="text-[10px] font-semibold text-[#D8D6CF]">Tukar</span>
+                                <span class="mt-0.5 font-mono text-2xl font-extrabold text-[#F5B60A] tabular-nums">
+                                    {{ number_format($voucher->points_cost) }}
                                 </span>
-                                <h2 class="mt-1.5 font-serif text-base font-semibold leading-snug text-foreground">{{ $voucher->name }}</h2>
+                                <span class="text-[10px] font-semibold text-[#D8D6CF]">poin</span>
+                            </div>
 
-                                @if ($voucher->menuItem)
-                                    <p class="text-xs text-muted-foreground">Berlaku untuk menu: <strong class="text-foreground">{{ $voucher->menuItem->name }}</strong></p>
-                                @elseif ($voucher->discount_amount > 0)
-                                    <p class="text-xs text-muted-foreground">Potongan langsung senilai <strong class="text-foreground">{{ Rupiah::format($voucher->discount_amount) }}</strong></p>
-                                @endif
+                            {{-- Right Voucher Details --}}
+                            <div class="flex flex-1 flex-col justify-between gap-3 p-3.5">
+                                <div>
+                                    <div class="flex flex-wrap items-center justify-between gap-1.5">
+                                        <span class="rounded-md bg-secondary px-2 py-0.5 text-[10px] font-bold text-secondary-foreground">
+                                            {{ $voucher->type->label() }}
+                                        </span>
+                                        <span class="font-mono text-[11px] text-muted-foreground tabular-nums">
+                                            Berlaku {{ $voucher->valid_days ?? 30 }} hari
+                                        </span>
+                                    </div>
 
-                                <div class="mt-2 flex flex-wrap items-center gap-2 text-[11px] text-muted-foreground">
-                                    <span>Masa berlaku {{ $voucher->valid_days ?? 30 }} hari</span>
+                                    <h2 class="mt-1.5 text-base font-extrabold tracking-tight text-foreground">{{ $voucher->name }}</h2>
+
+                                    @if ($voucher->menuItem)
+                                        <p class="mt-0.5 text-xs text-muted-foreground">
+                                            Gratis 1 porsi <strong class="font-semibold text-foreground">{{ $voucher->menuItem->name }}</strong>
+                                        </p>
+                                    @elseif ($voucher->discount_amount > 0)
+                                        <p class="mt-0.5 text-xs text-muted-foreground">
+                                            Potongan harga <strong class="font-mono font-semibold text-foreground">{{ Rupiah::format($voucher->discount_amount) }}</strong>
+                                        </p>
+                                    @endif
+
                                     @if ($voucher->quota !== null)
-                                        <span>· Sisa kuota: {{ $voucher->quota }}</span>
+                                        <p class="mt-1 font-mono text-[11px] font-semibold text-muted-foreground tabular-nums">
+                                            Sisa kuota: {{ $voucher->quota }} kupon
+                                        </p>
+                                    @endif
+                                </div>
+
+                                <div>
+                                    @if ($canClaim)
+                                        <form method="POST" action="{{ route('customer.rewards.claim', $voucher) }}"
+                                            onsubmit="return confirm('Tukarkan {{ number_format($voucher->points_cost) }} poin untuk voucer {{ $voucher->name }}?');">
+                                            @csrf
+                                            <button type="submit"
+                                                class="flex min-h-11 w-full items-center justify-center rounded-lg border border-foreground bg-primary px-4 text-xs font-extrabold text-primary-foreground transition-colors hover:bg-primary/90 dark:border-primary {{ $focus }}">
+                                                Tukarkan {{ number_format($voucher->points_cost) }} Poin
+                                            </button>
+                                        </form>
+                                    @else
+                                        <button type="button" disabled
+                                            class="flex min-h-11 w-full cursor-not-allowed items-center justify-center rounded-lg border border-border bg-secondary/70 px-3 text-xs font-semibold text-muted-foreground">
+                                            @if ($voucher->quota !== null && $voucher->quota <= 0)
+                                                Kuota Habis
+                                            @else
+                                                Kurang {{ number_format($shortfall) }} poin lagi
+                                            @endif
+                                        </button>
                                     @endif
                                 </div>
                             </div>
-
-                            <div class="text-right shrink-0">
-                                <span class="font-serif text-lg font-bold text-primary tabular-nums">
-                                    {{ number_format($voucher->points_cost) }}
-                                </span>
-                                <span class="block text-[10px] text-muted-foreground">poin</span>
-                            </div>
-                        </div>
-
-                        <div class="border-t border-border/60 pt-3">
-                            @if ($canClaim)
-                                <form method="POST" action="{{ route('customer.rewards.claim', $voucher) }}" onsubmit="return confirm('Tukarkan {{ number_format($voucher->points_cost) }} poin untuk voucer {{ $voucher->name }}?');">
-                                    @csrf
-                                    <april:button type="submit" size="none" class="flex h-10 w-full items-center justify-center font-medium text-xs">
-                                        Tukarkan {{ number_format($voucher->points_cost) }} Poin
-                                    </april:button>
-                                </form>
-                            @else
-                                <button
-                                    type="button"
-                                    disabled
-                                    class="flex h-10 w-full cursor-not-allowed items-center justify-center rounded-md border border-border bg-muted/60 text-xs font-medium text-muted-foreground opacity-70"
-                                >
-                                    {{ $voucher->quota !== null && $voucher->quota <= 0 ? 'Kuota Habis' : 'Poin Belum Cukup' }}
-                                </button>
-                            @endif
                         </div>
                     </article>
                 @endforeach

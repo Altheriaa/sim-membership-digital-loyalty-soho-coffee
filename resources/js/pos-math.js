@@ -41,8 +41,46 @@ export function subtotalOf(lines) {
  * The rupiah value a pinned member voucher takes off this cart. The register
  * never charges more than the subtotal, mirroring the server-side cap.
  */
-export function voucherDiscount(voucher, subtotal) {
-    return voucher ? Math.min(voucher.amount, subtotal) : 0;
+/**
+ * Computes discount for a voucher, enforcing cart presence for `free_item` rewards.
+ *
+ * @param  {object|null}  voucher
+ * @param  {number}  subtotal
+ * @param  {Array<{id:number, price:number, quantity:number}>}  cartLines
+ * @return {number}
+ */
+export function voucherDiscount(voucher, subtotal, cartLines = []) {
+    if (!voucher || subtotal <= 0) {
+        return 0;
+    }
+
+    if (voucher.type === 'free_item') {
+        const line = cartLines.find((item) => Number(item.id) === Number(voucher.menu_item_id));
+        if (!line) {
+            return 0;
+        }
+
+        return Math.min(voucher.amount, line.price, subtotal);
+    }
+
+    return Math.min(voucher.amount, subtotal);
+}
+
+/**
+ * Maximum points usable against remaining subtotal without wasting excess points.
+ */
+export function maxRedeemablePoints(memberPoints, pointValue, remainingSubtotal) {
+    if (!memberPoints || memberPoints <= 0 || !pointValue || pointValue <= 0 || remainingSubtotal <= 0) {
+        return 0;
+    }
+
+    return Math.min(memberPoints, Math.floor(remainingSubtotal / pointValue));
+}
+
+export function pointDiscount(pointsToRedeem, pointValue, remainingSubtotal) {
+    const usable = Math.min(Math.max(0, Number(pointsToRedeem) || 0), maxRedeemablePoints(pointsToRedeem, pointValue, remainingSubtotal));
+
+    return usable * (Number(pointValue) || 0);
 }
 
 export function formatRupiah(amount) {

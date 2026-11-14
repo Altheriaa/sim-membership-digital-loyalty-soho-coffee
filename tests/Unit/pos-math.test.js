@@ -4,10 +4,13 @@ import {
     cashSuggestions,
     formatRupiah,
     isValidPhone,
+    maxRedeemablePoints,
     normalizePhone,
+    pointDiscount,
     pointsFor,
     subtotalOf,
     taxFor,
+    voucherDiscount,
 } from '../../resources/js/pos-math.js';
 
 test('normalizePhone brings every common way of typing a number to 62...', () => {
@@ -57,4 +60,21 @@ test('cashSuggestions offers the exact total and the next round notes without du
     assert.deepEqual(cashSuggestions(43000), [43000, 50000, 100000]);
     assert.deepEqual(cashSuggestions(50000), [50000, 100000]);
     assert.deepEqual(cashSuggestions(61500), [61500, 70000, 100000]);
+});
+
+test('voucherDiscount requires matching menu item in cart for free_item vouchers', () => {
+    const freeVoucher = { type: 'free_item', menu_item_id: 7, amount: 28000 };
+    const cartWithoutItem = [{ id: 1, price: 20000, quantity: 2 }];
+    const cartWithItem = [{ id: 1, price: 20000, quantity: 1 }, { id: 7, price: 28000, quantity: 1 }];
+
+    assert.equal(voucherDiscount(freeVoucher, 40000, cartWithoutItem), 0);
+    assert.equal(voucherDiscount(freeVoucher, 48000, cartWithItem), 28000);
+    assert.equal(voucherDiscount({ type: 'discount_amount', amount: 30000 }, 20000, cartWithoutItem), 20000);
+});
+
+test('maxRedeemablePoints and pointDiscount cap points cleanly to avoid waste', () => {
+    assert.equal(maxRedeemablePoints(50, 1000, 18500), 18);
+    assert.equal(maxRedeemablePoints(10, 1000, 25000), 10);
+    assert.equal(pointDiscount(25, 1000, 18500), 18000);
+    assert.equal(pointDiscount(5, 1000, 500), 0);
 });

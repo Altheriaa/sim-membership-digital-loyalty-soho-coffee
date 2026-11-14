@@ -23,9 +23,13 @@
                 <x-lucide-download class="size-3.5" />
                 <span class="hidden sm:inline">Install POS</span>
             </button>
+            <april:button-link href="{{ route('admin.reports.index') }}" variant="outline" size="none"
+                class="h-11 px-3 text-xs sm:h-9">
+                Laporan
+            </april:button-link>
             @if (auth()->user()->hasRole(Role::Admin))
                 <april:button-link href="{{ route('admin.dashboard') }}" variant="outline" size="none"
-                    class="h-9 px-3 text-xs">
+                    class="h-11 px-3 text-xs sm:h-9">
                     Ke back office
                 </april:button-link>
             @endif
@@ -46,6 +50,7 @@
     'settings' => [
         'taxBasisPoints' => $settings->taxBasisPoints(),
         'spendPerPoint' => (int) $settings->spend_per_point,
+        'pointValue' => (int) $settings->point_value,
     ],
     'routes' => [
         'lookup' => route('pos.members.lookup'),
@@ -338,9 +343,57 @@
                             x-text="'Kode ' + voucher?.code"></span>
                     </div>
                     <p class="text-xs font-semibold text-primary" x-text="voucher?.benefit"></p>
-                    <p class="text-[11px] text-muted-foreground">Siap dipakai saat pembayaran. PIN Keamanan sudah
+                    <p x-show="!voucherMissingItemMessage" class="text-[11px] text-muted-foreground">Siap dipakai saat pembayaran. PIN Keamanan sudah
                         diverifikasi kasir.</p>
+                    <p x-show="voucherMissingItemMessage" class="text-xs font-medium text-destructive"
+                        x-text="voucherMissingItemMessage"></p>
                 </div>
+
+                @if ($settings->point_value > 0)
+                    <div x-show="member && remainingAfterVoucher >= {{ $settings->point_value }}"
+                        class="mt-2 border-t border-border/60 pt-2.5 flex flex-col gap-2">
+                        <div class="flex items-center justify-between gap-2">
+                            <span class="text-xs font-medium text-foreground">Tukar Poin Langsung</span>
+                            <button type="button" x-show="effectivePointsToRedeem > 0" @click="clearPoints"
+                                class="text-xs text-muted-foreground hover:text-destructive underline">
+                                Reset poin
+                            </button>
+                        </div>
+
+                        <template x-if="!member?.has_pin">
+                            <p class="text-[11px] text-muted-foreground">
+                                Member belum mengatur PIN Keamanan di aplikasi sehingga tukar poin belum aktif.
+                            </p>
+                        </template>
+
+                        <template x-if="member?.has_pin && member?.points_balance > 0">
+                            <div class="flex flex-col gap-1.5">
+                                <div class="flex items-center gap-1.5">
+                                    <input type="number" min="0" :max="maxRedeemablePoints" x-model.number="pointsToRedeem"
+                                        aria-label="Jumlah poin yang ditukar" placeholder="0 poin"
+                                        class="h-11 sm:h-9 w-full rounded border border-input bg-background px-2.5 text-sm font-mono tabular-nums focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring">
+                                    <button type="button" @click="redeemAllPoints" :disabled="maxRedeemablePoints <= 0"
+                                        class="h-11 sm:h-9 px-3 rounded border border-input bg-background text-xs font-medium hover:bg-accent disabled:opacity-50 shrink-0">
+                                        Maks (<span x-text="maxRedeemablePoints"></span>)
+                                    </button>
+                                </div>
+                                <p class="text-[11px] text-muted-foreground tabular-nums">
+                                    1 poin = {{ \App\Support\Rupiah::format($settings->point_value) }} · Potongan:
+                                    <strong class="text-foreground" x-text="rupiah(pointAmount)"></strong>
+                                </p>
+                                <div x-show="effectivePointsToRedeem > 0 && !voucher" class="flex flex-col gap-1">
+                                    <label class="text-[11px] font-medium text-muted-foreground" for="point-pin-input">
+                                        PIN Keamanan 6-digit member
+                                    </label>
+                                    <input id="point-pin-input" type="password" inputmode="numeric" maxlength="6"
+                                        x-model="pointPin" placeholder="6 digit PIN" aria-label="PIN Keamanan member untuk tukar poin"
+                                        class="h-11 sm:h-9 w-full rounded border border-input bg-background px-2.5 text-sm font-mono tracking-widest focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring">
+                                </div>
+                                <p x-show="pointError" class="text-xs text-destructive" x-text="pointError"></p>
+                            </div>
+                        </template>
+                    </div>
+                @endif
             </div>
 
             <!-- Ringkasan Biaya -->
@@ -349,13 +402,17 @@
                     <span>Subtotal</span>
                     <span class="tabular-nums" x-text="rupiah(subtotal)"></span>
                 </div>
-                <div class="flex justify-between text-muted-foreground">
-                    <span>Pajak</span>
-                    <span class="tabular-nums" x-text="rupiah(tax)"></span>
-                </div>
                 <div x-show="voucherAmount > 0" class="flex justify-between text-muted-foreground">
                     <span>Potongan voucer</span>
                     <span class="tabular-nums text-primary" x-text="'- ' + rupiah(voucherAmount)"></span>
+                </div>
+                <div x-show="pointAmount > 0" class="flex justify-between text-muted-foreground">
+                    <span>Potongan tukar poin</span>
+                    <span class="tabular-nums text-primary" x-text="'- ' + rupiah(pointAmount)"></span>
+                </div>
+                <div class="flex justify-between text-muted-foreground">
+                    <span>Pajak</span>
+                    <span class="tabular-nums" x-text="rupiah(tax)"></span>
                 </div>
                 <div class="flex justify-between pt-1 border-t border-border/60 text-sm font-semibold text-foreground">
                     <span>Total Tagihan</span>

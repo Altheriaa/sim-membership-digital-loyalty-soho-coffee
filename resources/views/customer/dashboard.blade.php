@@ -1,175 +1,188 @@
 @use('App\Support\Rupiah')
 
-<x-layouts.customer title="Keanggotaan Saya">
+@php
+    $focus = 'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground';
+@endphp
+
+<x-layouts.customer title="Kartu Member">
     <div class="flex flex-col gap-5">
-        <!-- Kartu Keanggotaan Digital (Digital Member Card) -->
-        <article class="relative overflow-hidden rounded-xl border border-primary/20 bg-linear-to-br from-card via-card to-primary/5 p-5 text-card-foreground shadow-sm">
-            <div class="flex items-start justify-between">
-                <div>
-                    <span class="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Kartu Digital Member</span>
-                    <h1 class="font-serif text-xl font-bold tracking-tight text-foreground">{{ $member->name }}</h1>
-                    <p class="text-xs text-muted-foreground tabular-nums">{{ $member->displayPhone() }}</p>
+        {{-- Unified Perforated Coffee-House Pass (Focal Point) --}}
+        <article aria-label="Kartu member digital" class="relative overflow-hidden rounded-2xl border border-foreground/15 bg-[#1F1D19] text-[#F5F4EF] shadow-sm">
+            {{-- Upper Pass: Identity + Points Balance --}}
+            <div class="p-5">
+                <div class="flex items-start justify-between gap-3">
+                    <div class="min-w-0">
+                        <p class="font-mono text-[11px] font-semibold text-[#D8D6CF]">
+                            #MBR-{{ str_pad((string) $member->id, 5, '0', STR_PAD_LEFT) }}
+                        </p>
+                        <h1 class="mt-0.5 truncate text-xl font-extrabold tracking-tight text-[#F5F4EF]">
+                            {{ $member->name }}
+                        </h1>
+                        <p class="font-mono text-xs text-[#D8D6CF] tabular-nums">{{ $member->displayPhone() }}</p>
+                    </div>
+
+                    <div class="shrink-0 text-right">
+                        @if ($tier)
+                            <span class="inline-block rounded-md bg-[#F5B60A] px-2.5 py-1 text-xs font-extrabold text-[#1D1B16]">
+                                Tier {{ $tier->name }}
+                            </span>
+                            <p class="mt-1 font-mono text-[11px] font-semibold text-[#D8D6CF] tabular-nums">
+                                {{ $tier->multiplierLabel() }}x poin
+                            </p>
+                        @else
+                            <span class="inline-block rounded-md border border-[#F5F4EF]/20 bg-[#2B2721] px-2.5 py-1 text-xs font-semibold text-[#F5F4EF]">
+                                Member
+                            </span>
+                        @endif
+                    </div>
                 </div>
-                <div class="text-right">
-                    @if ($tier)
-                        <span class="inline-flex items-center rounded-full bg-primary/15 px-2.5 py-1 text-xs font-bold text-primary">
-                            {{ $tier->name }}
-                        </span>
-                        <p class="mt-0.5 text-[10px] text-muted-foreground font-medium">{{ $tier->multiplierLabel() }}x poin belanja</p>
+
+                <div class="mt-6 flex items-baseline justify-between gap-4">
+                    <div>
+                        <span class="text-xs text-[#D8D6CF]">Saldo Poin Aktif</span>
+                        <p class="mt-0.5 font-mono text-4xl font-extrabold tracking-tight text-[#F5B60A] tabular-nums">
+                            {{ number_format($member->points_balance) }}<span class="ml-1.5 font-sans text-sm font-semibold text-[#D8D6CF]">poin</span>
+                        </p>
+                    </div>
+                    <div class="text-right">
+                        <span class="text-xs text-[#D8D6CF]">Nilai Tukar</span>
+                        <p class="mt-0.5 font-mono text-base font-bold text-[#F5F4EF] tabular-nums">
+                            {{ Rupiah::format($member->points_balance * $settings->point_value) }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Perforated Tear Line with Physical Cutout Notches --}}
+            <div class="relative flex items-center justify-between" aria-hidden="true">
+                <span class="-ml-3 size-6 rounded-full bg-background"></span>
+                <span class="w-full border-t-2 border-dashed border-[#F5F4EF]/20"></span>
+                <span class="-mr-3 size-6 rounded-full bg-background"></span>
+            </div>
+
+            {{-- Lower Pass Stub: Tier Progress & Cashier Instruction --}}
+            <div class="bg-[#27241F] px-5 pt-3.5 pb-4">
+                <div class="flex items-center justify-between text-xs">
+                    @if ($nextTier)
+                        <span class="text-[#D8D6CF]">Menuju <strong class="font-bold text-[#F5F4EF]">{{ $nextTier->name }}</strong></span>
+                        <span class="font-mono font-bold text-[#F5B60A] tabular-nums">{{ $progressPct }}%</span>
                     @else
-                        <span class="inline-flex items-center rounded-full bg-secondary px-2.5 py-1 text-xs font-semibold text-secondary-foreground">
-                            Standar
-                        </span>
+                        <span class="font-bold text-[#F5B60A]">Tingkat Member Tertinggi</span>
+                        <span class="font-mono font-bold text-[#F5F4EF] tabular-nums">100%</span>
                     @endif
                 </div>
-            </div>
 
-            <!-- Total Poin Belanja & Saldo -->
-            <div class="mt-6 flex items-baseline justify-between border-t border-border/60 pt-4">
-                <div>
-                    <span class="text-[11px] text-muted-foreground">Saldo Poin Aktif</span>
-                    <p class="font-serif text-3xl font-extrabold tracking-tight text-primary tabular-nums">
-                        {{ number_format($member->points_balance) }} <span class="text-xs font-mono font-medium text-muted-foreground">poin</span>
-                    </p>
+                <div class="mt-2 h-2 w-full overflow-hidden rounded-sm bg-[#1F1D19]">
+                    <div class="h-full bg-[#F5B60A] transition-all duration-500" style="width: {{ $progressPct }}%"></div>
                 </div>
-                <div class="text-right text-xs">
-                    <span class="text-muted-foreground">Nilai Poin</span>
-                    <p class="font-semibold text-foreground tabular-nums">
-                        {{ Rupiah::format($member->points_balance * $settings->point_value) }}
-                    </p>
-                </div>
-            </div>
 
-            <!-- Kode Barcode / Nomor Member Visual -->
-            <div class="mt-4 flex items-center justify-between rounded-md bg-background/60 p-2 text-[11px] border border-border/60">
-                <span class="text-muted-foreground font-mono">ID: #MBR-{{ str_pad((string)$member->id, 5, '0', STR_PAD_LEFT) }}</span>
-                <span class="text-[10px] text-primary font-medium">Tunjukkan ke kasir saat pesan</span>
+                <div class="mt-2.5 flex items-center justify-between text-[11px] text-[#D8D6CF]">
+                    @if ($nextTier)
+                        <span>Kurang {{ Rupiah::format($spendToNext) }} belanja lagi</span>
+                    @else
+                        <span>Pengganda poin maksimal aktif</span>
+                    @endif
+                    <span class="font-semibold text-[#F5F4EF]">Sebutkan no. WA di kasir</span>
+                </div>
             </div>
         </article>
 
-        <!-- Progres Menuju Tier Berikutnya -->
-        <section aria-label="Progres tingkat keanggotaan" class="rounded-lg border border-border bg-card p-4 text-card-foreground shadow-xs">
-            <div class="flex items-center justify-between text-xs">
-                <span class="font-medium text-foreground">Status Tingkat (Tier)</span>
-                @if ($nextTier)
-                    <span class="text-muted-foreground">Target: <strong class="text-foreground">{{ $nextTier->name }}</strong></span>
-                @else
-                    <span class="text-primary font-semibold">Tingkat Tertinggi</span>
-                @endif
-            </div>
-
-            <div class="mt-2.5 h-2 w-full overflow-hidden rounded-full bg-secondary">
-                <div class="h-full bg-primary transition-all duration-500" style="width: {{ $progressPct }}%"></div>
-            </div>
-
-            <div class="mt-2 flex items-center justify-between text-[11px] text-muted-foreground">
-                @if ($nextTier)
-                    <span>Belanja {{ Rupiah::format($spendToNext) }} lagi</span>
-                    <span class="tabular-nums font-medium text-foreground">{{ $progressPct }}%</span>
-                @else
-                    <span>Selamat! Anda telah menikmati keuntungan poin tertinggi.</span>
-                @endif
-            </div>
-        </section>
-
-        <!-- Menu Pintas Cepat (Quick Access Grid) -->
-        <div class="grid grid-cols-2 gap-3">
-            <a
-                href="{{ route('customer.rewards.index') }}"
-                class="flex flex-col justify-between rounded-lg border border-border bg-card p-3.5 text-card-foreground hover:border-primary/50 transition-colors shadow-xs"
-            >
-                <div class="flex items-center justify-between">
-                    <div class="flex size-8 items-center justify-center rounded-md bg-primary/10 text-primary">
-                        <x-lucide-ticket class="size-4" />
-                    </div>
-                </div>
+        {{-- Primary Action Split: Reward Redemption vs Active Voucher Wallet (No generic icon boxes) --}}
+        <div class="grid grid-cols-5 gap-2.5">
+            <a href="{{ route('customer.rewards.index') }}"
+                class="col-span-3 flex flex-col justify-between rounded-xl border border-foreground bg-primary p-4 text-primary-foreground transition-colors hover:bg-primary/90 dark:border-primary {{ $focus }}">
+                <span class="text-[11px] font-bold opacity-85">Katalog Reward</span>
                 <div class="mt-3">
-                    <h2 class="font-serif text-sm font-semibold text-foreground">Katalog Reward</h2>
-                    <p class="text-[11px] text-muted-foreground">Tukar poin jadi voucer</p>
+                    <p class="text-base font-extrabold tracking-tight leading-snug">Tukar Poin Jadi Voucher</p>
+                    <p class="mt-1 text-xs font-semibold underline underline-offset-4">Pilih reward sekarang</p>
                 </div>
             </a>
 
-            <a
-                href="{{ route('customer.vouchers.index') }}"
-                class="flex flex-col justify-between rounded-lg border border-border bg-card p-3.5 text-card-foreground hover:border-primary/50 transition-colors shadow-xs"
-            >
-                <div class="flex items-center justify-between">
-                    <div class="flex size-8 items-center justify-center rounded-md bg-secondary text-foreground">
-                        <x-lucide-tag class="size-4" />
-                    </div>
-                    @if ($activeVouchersCount > 0)
-                        <span class="rounded-full bg-primary px-2 py-0.5 text-[10px] font-bold text-primary-foreground">
-                            {{ $activeVouchersCount }}
-                        </span>
-                    @endif
-                </div>
-                <div class="mt-3">
-                    <h2 class="font-serif text-sm font-semibold text-foreground">Kupon Saya</h2>
-                    <p class="text-[11px] text-muted-foreground">{{ $activeVouchersCount }} voucer aktif</p>
-                </div>
-            </a>
-
-            <a
-                href="{{ route('customer.history.index') }}"
-                class="flex flex-col justify-between rounded-lg border border-border bg-card p-3.5 text-card-foreground hover:border-primary/50 transition-colors shadow-xs"
-            >
-                <div class="flex items-center justify-between">
-                    <div class="flex size-8 items-center justify-center rounded-md bg-secondary text-foreground">
-                        <x-lucide-bar-chart-3 class="size-4" />
-                    </div>
-                </div>
-                <div class="mt-3">
-                    <h2 class="font-serif text-sm font-semibold text-foreground">Riwayat Belanja</h2>
-                    <p class="text-[11px] text-muted-foreground">Struk digital E-Receipt</p>
-                </div>
-            </a>
-
-            <a
-                href="{{ route('customer.pin.show') }}"
-                class="flex flex-col justify-between rounded-lg border border-border bg-card p-3.5 text-card-foreground hover:border-primary/50 transition-colors shadow-xs"
-            >
-                <div class="flex items-center justify-between">
-                    <div class="flex size-8 items-center justify-center rounded-md bg-secondary text-foreground">
-                        <x-lucide-user-check class="size-4" />
-                    </div>
-                    @if (! $member->hasPin())
-                        <span class="rounded bg-destructive/15 px-1.5 py-0.5 text-[10px] font-medium text-destructive">
-                            Belum set
-                        </span>
-                    @endif
-                </div>
-                <div class="mt-3">
-                    <h2 class="font-serif text-sm font-semibold text-foreground">PIN Keamanan</h2>
-                    <p class="text-[11px] text-muted-foreground">Lindungi saldo poin</p>
+            <a href="{{ route('customer.vouchers.index') }}"
+                class="col-span-2 flex flex-col justify-between rounded-xl border border-border bg-card p-4 text-card-foreground transition-colors hover:border-foreground {{ $focus }}">
+                <span class="text-[11px] font-semibold text-muted-foreground">Kupon Saya</span>
+                <div class="mt-2">
+                    <p class="font-mono text-2xl font-extrabold tracking-tight text-foreground tabular-nums">
+                        {{ $activeVouchersCount }}
+                    </p>
+                    <p class="mt-0.5 text-xs font-semibold text-muted-foreground">siap dipakai</p>
                 </div>
             </a>
         </div>
 
-        <!-- Transaksi Terakhir -->
-        <section aria-labelledby="recent-heading" class="rounded-lg border border-border bg-card p-4 text-card-foreground shadow-xs">
-            <div class="flex items-center justify-between border-b border-border pb-2.5">
-                <h2 id="recent-heading" class="font-serif text-sm font-semibold text-foreground">Transaksi Terakhir</h2>
-                <a href="{{ route('customer.history.index') }}" class="text-[11px] text-primary hover:underline">Lihat semua</a>
+        {{-- iOS Inset Grouped List for Account & Menu Navigation --}}
+        <section aria-label="Menu akun dan keamanan" class="overflow-hidden rounded-xl border border-border bg-card">
+            <ul class="divide-y divide-border text-xs">
+                <li>
+                    <a href="{{ route('customer.history.index') }}"
+                        class="flex min-h-13 items-center justify-between gap-3 px-4 py-3 transition-colors hover:bg-accent/50 {{ $focus }}">
+                        <div>
+                            <p class="font-bold text-foreground">Riwayat Belanja & Mutasi Poin</p>
+                            <p class="mt-0.5 text-[11px] text-muted-foreground">Lihat struk digital (E-Receipt) dan keluar-masuk poin</p>
+                        </div>
+                        <span class="shrink-0 font-mono text-xs font-bold text-muted-foreground" aria-hidden="true">&rsaquo;</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ route('customer.pin.show') }}"
+                        class="flex min-h-13 items-center justify-between gap-3 px-4 py-3 transition-colors hover:bg-accent/50 {{ $focus }}">
+                        <div>
+                            <p class="font-bold text-foreground">PIN Keamanan 6-Digit</p>
+                            <p class="mt-0.5 text-[11px] text-muted-foreground">Kunci pengaman saat menukar poin di kasir</p>
+                        </div>
+                        <div class="flex shrink-0 items-center gap-2">
+                            @if ($member->hasPin())
+                                <span class="rounded-md bg-secondary px-2 py-0.5 text-[10px] font-bold text-foreground">Aktif</span>
+                            @else
+                                <span class="rounded-md bg-destructive/15 px-2 py-0.5 text-[10px] font-bold text-destructive">Belum diatur</span>
+                            @endif
+                            <span class="font-mono text-xs font-bold text-muted-foreground" aria-hidden="true">&rsaquo;</span>
+                        </div>
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ route('home') }}#menu"
+                        class="flex min-h-13 items-center justify-between gap-3 px-4 py-3 transition-colors hover:bg-accent/50 {{ $focus }}">
+                        <div>
+                            <p class="font-bold text-foreground">Lihat Menu & Harga Kedai</p>
+                            <p class="mt-0.5 text-[11px] text-muted-foreground">Buka daftar menu kopi, non-kopi, dan camilan Soho</p>
+                        </div>
+                        <span class="shrink-0 font-mono text-xs font-bold text-muted-foreground" aria-hidden="true">&rsaquo;</span>
+                    </a>
+                </li>
+            </ul>
+        </section>
+
+        {{-- Recent Receipt Ledger with Dotted Leaders --}}
+        <section aria-labelledby="recent-heading" class="rounded-xl border border-border bg-card p-4 text-card-foreground">
+            <div class="flex items-baseline justify-between pb-3">
+                <h2 id="recent-heading" class="text-sm font-extrabold tracking-tight text-foreground">Struk Belanja Terakhir</h2>
+                <a href="{{ route('customer.history.index') }}"
+                    class="rounded-md px-1 py-0.5 text-xs font-semibold text-muted-foreground underline underline-offset-4 hover:text-foreground {{ $focus }}">
+                    Semua struk
+                </a>
             </div>
 
             @if ($recentOrders->isEmpty())
-                <p class="py-6 text-center text-xs text-muted-foreground">
-                    Belum ada riwayat transaksi. Tunjukkan nomor WhatsApp ke kasir saat memesan!
-                </p>
+                <div class="rounded-lg border border-dashed border-input bg-background/60 p-4 text-xs leading-relaxed text-muted-foreground">
+                    Belum ada struk tercatat di akun ini. Saat memesan di kasir, sebutkan nomor WhatsApp <strong class="font-mono text-foreground">{{ $member->displayPhone() }}</strong> agar struk dan poin masuk otomatis.
+                </div>
             @else
-                <ul class="divide-y divide-border/60">
+                <ul class="divide-y divide-border/70 border-t border-border">
                     @foreach ($recentOrders as $order)
-                        <li class="flex items-center justify-between py-2.5 text-xs">
-                            <div>
-                                <a href="{{ route('customer.receipt', $order) }}" class="font-semibold text-foreground hover:underline">
-                                    {{ $order->number }}
-                                </a>
-                                <p class="text-[11px] text-muted-foreground">{{ $order->created_at->translatedFormat('d M Y, H:i') }}</p>
-                            </div>
-                            <div class="text-right">
-                                <p class="font-semibold text-foreground tabular-nums">{{ Rupiah::format($order->total) }}</p>
-                                <p class="text-[11px] text-primary font-medium tabular-nums">+{{ number_format($order->points_earned) }} poin</p>
-                            </div>
+                        <li>
+                            <a href="{{ route('customer.receipt', $order) }}"
+                                class="block py-3 text-xs transition-colors hover:bg-accent/40 {{ $focus }}">
+                                <div class="leader-row">
+                                    <span class="font-mono font-bold text-foreground">{{ $order->number }}</span>
+                                    <span class="leader-fill" aria-hidden="true"></span>
+                                    <span class="font-mono font-extrabold text-foreground tabular-nums">{{ Rupiah::format($order->total) }}</span>
+                                </div>
+                                <div class="mt-1 flex items-center justify-between text-[11px] text-muted-foreground">
+                                    <span>{{ $order->created_at->translatedFormat('d M Y, H:i') }}</span>
+                                    <span class="font-mono font-bold text-foreground tabular-nums">+{{ number_format($order->points_earned) }} poin</span>
+                                </div>
+                            </a>
                         </li>
                     @endforeach
                 </ul>

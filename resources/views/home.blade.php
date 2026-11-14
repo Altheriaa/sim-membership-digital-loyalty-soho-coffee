@@ -10,7 +10,7 @@
         '#lokasi' => 'Lokasi',
     ];
     $memberCta = $isMember
-        ? ['href' => route('customer.dashboard'), 'label' => 'Buka Kartu Member', 'short' => 'Kartu Saya']
+        ? ['href' => route('customer.dashboard'), 'label' => 'Buka Kartu Member', 'short' => 'Member Saya']
         : ['href' => route('customer.login'), 'label' => 'Masuk / Daftar Member', 'short' => 'Member'];
     $spendStep = Rupiah::format($settings->spend_per_point);
     $slides = [

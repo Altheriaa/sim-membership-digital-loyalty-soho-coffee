@@ -74,31 +74,35 @@ class ReportController extends Controller
             ],
         };
 
-        // Query dasar transaksi dalam rentang tanggal
-        $ordersQuery = Order::query()->whereBetween('created_at', [$startDate, $endDate]);
+        // Query dasar seluruh transaksi dan transaksi sah (tidak di-void) dalam rentang tanggal
+        $allOrdersQuery = Order::query()->whereBetween('created_at', [$startDate, $endDate]);
+        $validOrdersQuery = (clone $allOrdersQuery)->notVoided();
 
-        // Ringkasan Finansial & Transaksi
-        $totalOrders = (clone $ordersQuery)->count();
-        $grossSales = (int) (clone $ordersQuery)->sum('total');
-        $subtotalSales = (int) (clone $ordersQuery)->sum('subtotal');
-        $totalDiscount = (int) (clone $ordersQuery)->sum('discount_amount');
-        $totalTax = (int) (clone $ordersQuery)->sum('tax_amount');
-        $cashSales = (int) (clone $ordersQuery)->where('payment_method', PaymentMethod::Cash)->sum('total');
-        $nonCashSales = (int) (clone $ordersQuery)->where('payment_method', PaymentMethod::NonCash)->sum('total');
+        // Ringkasan Finansial & Transaksi (hanya transaksi sah)
+        $totalOrders = (clone $validOrdersQuery)->count();
+        $totalVoidedOrders = (clone $allOrdersQuery)->whereNotNull('voided_at')->count();
+        $grossSales = (int) (clone $validOrdersQuery)->sum('total');
+        $subtotalSales = (int) (clone $validOrdersQuery)->sum('subtotal');
+        $totalDiscount = (int) (clone $validOrdersQuery)->sum('discount_amount');
+        $totalTax = (int) (clone $validOrdersQuery)->sum('tax_amount');
+        $cashSales = (int) (clone $validOrdersQuery)->where('payment_method', PaymentMethod::Cash)->sum('total');
+        $nonCashSales = (int) (clone $validOrdersQuery)->where('payment_method', PaymentMethod::NonCash)->sum('total');
         $averageOrderValue = $totalOrders > 0 ? (int) round($grossSales / $totalOrders) : 0;
-        $totalPointsEarned = (int) (clone $ordersQuery)->sum('points_earned');
+        $totalPointsEarned = (int) (clone $validOrdersQuery)->sum('points_earned');
 
-        // Menu Paling Laris (Best Seller)
+        // Menu Paling Laris (Best Seller) hanya dari transaksi sah
         $bestSellersQuery = OrderItem::query()
-            ->whereHas('order', fn ($q) => $q->whereBetween('created_at', [$startDate, $endDate]))
-            ->selectRaw('menu_item_id, sum(quantity) as total_qty, sum(line_total) as total_sales')
+            ->with('menuItem')
+            ->whereHas('order', fn ($q) => $q->notVoided()->whereBetween('created_at', [$startDate, $endDate]))
+            ->selectRaw('menu_item_id, max(name) as fallback_name, sum(quantity) as total_qty, sum(line_total) as total_sales')
             ->groupBy('menu_item_id')
             ->orderByDesc('total_qty');
 
         $bestSellers = $paginate ? $bestSellersQuery->limit(10)->get() : $bestSellersQuery->get();
 
-        // Laporan Performa Kasir
+        // Laporan Performa Kasir (hanya transaksi sah)
         $cashierStats = Order::query()
+            ->whereNull('orders.voided_at')
             ->whereBetween('orders.created_at', [$startDate, $endDate])
             ->join('users', 'orders.cashier_id', '=', 'users.id')
             ->selectRaw('users.name as cashier_name, count(orders.id) as total_transactions, sum(orders.total) as total_sales')
@@ -106,10 +110,10 @@ class ReportController extends Controller
             ->orderByDesc('total_sales')
             ->get();
 
-        // Daftar Transaksi Penjualan (Riwayat Struk)
+        // Daftar Transaksi Penjualan (Riwayat Struk, tetap menampilkan void dengan status jelas)
         if ($paginate) {
-            $orders = (clone $ordersQuery)
-                ->with(['cashier', 'member', 'items'])
+            $orders = (clone $allOrdersQuery)
+                ->with(['cashier', 'member', 'items', 'voidedBy'])
                 ->latest('id')
                 ->paginate(15, ['*'], 'orders_page')
                 ->withQueryString();
@@ -121,8 +125,8 @@ class ReportController extends Controller
                 ->paginate(15)
                 ->withQueryString();
         } else {
-            $orders = (clone $ordersQuery)
-                ->with(['cashier', 'member', 'items'])
+            $orders = (clone $allOrdersQuery)
+                ->with(['cashier', 'member', 'items', 'voidedBy'])
                 ->latest('id')
                 ->get();
 
@@ -139,6 +143,7 @@ class ReportController extends Controller
             'startDate' => $startDate->format('Y-m-d'),
             'endDate' => $endDate->format('Y-m-d'),
             'totalOrders' => $totalOrders,
+            'totalVoidedOrders' => $totalVoidedOrders,
             'grossSales' => $grossSales,
             'subtotalSales' => $subtotalSales,
             'totalDiscount' => $totalDiscount,

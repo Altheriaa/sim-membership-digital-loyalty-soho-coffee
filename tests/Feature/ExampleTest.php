@@ -67,7 +67,7 @@ test('both landing pages point signed-in members directly to their digital membe
     $this->actingAs($member, 'customer')
         ->get(route('home'))
         ->assertOk()
-        ->assertSeeText('Buka Kartu Member')
+        ->assertSeeText('Kartu Saya')
         ->assertDontSeeText('Masuk / Daftar Member');
 
     $this->actingAs($member, 'customer')

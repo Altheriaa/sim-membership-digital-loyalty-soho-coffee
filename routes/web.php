@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\MemberController as AdminMemberController;
 use App\Http\Controllers\Admin\MenuCategoryController;
 use App\Http\Controllers\Admin\MenuItemAvailabilityController;
 use App\Http\Controllers\Admin\MenuItemController;
+use App\Http\Controllers\Admin\OrderVoidController;
 use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\Admin\StaffController;
 use App\Http\Controllers\Admin\TierController;
@@ -29,7 +30,7 @@ Route::prefix('app')->name('customer.')->group(function () {
     Route::get('/check-phone', [CustomerAuthController::class, 'checkPhone'])->name('check-phone');
     Route::middleware('throttle:5,1')->post('/login', [CustomerAuthController::class, 'sendOtp'])->name('send-otp');
     Route::get('/otp', [CustomerAuthController::class, 'showOtp'])->name('otp');
-    Route::post('/otp', [CustomerAuthController::class, 'verifyOtp'])->name('verify-otp');
+    Route::middleware('throttle:10,1')->post('/otp', [CustomerAuthController::class, 'verifyOtp'])->name('verify-otp');
     Route::middleware('throttle:5,1')->post('/resend-otp', [CustomerAuthController::class, 'resendOtp'])->name('resend-otp');
 
     Route::middleware('auth:customer')->group(function () {
@@ -47,9 +48,9 @@ Route::prefix('app')->name('customer.')->group(function () {
 
         Route::get('/pin', [CustomerPinController::class, 'show'])->name('pin.show');
         Route::post('/pin', [CustomerPinController::class, 'update'])->name('pin.update');
-        Route::post('/pin/reset', [CustomerPinController::class, 'requestReset'])->name('pin.reset.request');
+        Route::middleware('throttle:5,1')->post('/pin/reset', [CustomerPinController::class, 'requestReset'])->name('pin.reset.request');
         Route::get('/pin/reset', [CustomerPinController::class, 'showResetForm'])->name('pin.reset.form');
-        Route::post('/pin/reset/confirm', [CustomerPinController::class, 'processReset'])->name('pin.reset.confirm');
+        Route::middleware('throttle:10,1')->post('/pin/reset/confirm', [CustomerPinController::class, 'processReset'])->name('pin.reset.confirm');
     });
 });
 
@@ -89,6 +90,7 @@ Route::middleware('auth')->group(function () {
             Route::patch('menu-items/{menu_item}/availability', MenuItemAvailabilityController::class)->name('menu-items.availability');
             Route::resource('tiers', TierController::class)->except('show');
             Route::resource('vouchers', VoucherController::class)->except('show');
+            Route::post('orders/{order}/void', OrderVoidController::class)->name('orders.void');
             Route::get('loyalty', [LoyaltySettingController::class, 'edit'])->name('loyalty.edit');
             Route::put('loyalty', [LoyaltySettingController::class, 'update'])->name('loyalty.update');
         });

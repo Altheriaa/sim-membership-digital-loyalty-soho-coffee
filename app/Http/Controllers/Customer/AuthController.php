@@ -76,8 +76,17 @@ class AuthController extends Controller
             ]);
         }
 
+        if (
+            session('customer_otp_phone') === $normalized
+            && session()->has('customer_otp_code')
+            && Carbon::now()->timestamp < (int) session('customer_otp_resend_at', 0)
+        ) {
+            return redirect()->route('customer.otp')
+                ->with('status', 'Kode OTP baru saja dikirim. Periksa WhatsApp Anda atau tunggu beberapa saat.');
+        }
+
         $otp = (string) random_int(1000, 9999);
-        $expiresAt = Carbon::now()->addMinutes(1);
+        $expiresAt = Carbon::now()->addMinutes(5);
 
         try {
             $fonnteService->sendOTP($normalized, $otp);
@@ -175,7 +184,7 @@ class AuthController extends Controller
         $expires = session('customer_otp_expires');
 
         if (! $storedPhone || ! $storedCode || ! $expires || Carbon::now()->timestamp > $expires) {
-            session()->forget(['customer_otp_phone', 'customer_otp_name', 'customer_otp_code', 'customer_otp_expires', 'customer_otp_attempts', 'customer_otp_resend_at', 'otp_simulated']);
+            session()->forget(['customer_otp_phone', 'customer_otp_name', 'customer_otp_code', 'customer_otp_expires', 'customer_otp_attempts', 'customer_otp_resend_at']);
 
             return redirect()->route('customer.login')->withErrors([
                 'phone' => 'Kode OTP telah kedaluwarsa. Silakan masukkan nomor Anda kembali.',
@@ -188,7 +197,7 @@ class AuthController extends Controller
             $attempts++;
 
             if ($attempts >= 5) {
-                session()->forget(['customer_otp_phone', 'customer_otp_name', 'customer_otp_code', 'customer_otp_expires', 'customer_otp_attempts', 'customer_otp_resend_at', 'otp_simulated']);
+                session()->forget(['customer_otp_phone', 'customer_otp_name', 'customer_otp_code', 'customer_otp_expires', 'customer_otp_attempts', 'customer_otp_resend_at']);
 
                 return redirect()->route('customer.login')->withErrors([
                     'phone' => 'Terlalu banyak percobaan salah. Silakan minta kode OTP baru.',
@@ -215,7 +224,7 @@ class AuthController extends Controller
             ]
         );
 
-        session()->forget(['customer_otp_phone', 'customer_otp_name', 'customer_otp_code', 'customer_otp_expires', 'customer_otp_attempts', 'customer_otp_resend_at', 'otp_simulated']);
+        session()->forget(['customer_otp_phone', 'customer_otp_name', 'customer_otp_code', 'customer_otp_expires', 'customer_otp_attempts', 'customer_otp_resend_at']);
 
         session()->regenerate();
 

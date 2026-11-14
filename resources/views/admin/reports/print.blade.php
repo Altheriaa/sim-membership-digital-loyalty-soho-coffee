@@ -147,7 +147,7 @@
                                 @foreach ($bestSellers->take(5) as $index => $item)
                                     <tr>
                                         <td class="py-1 px-1 text-muted-foreground font-mono text-[10px]">{{ $index + 1 }}</td>
-                                        <td class="py-1 px-1 font-medium text-foreground truncate max-w-[140px]">{{ $item->name }}</td>
+                                        <td class="py-1 px-1 font-medium text-foreground truncate max-w-[140px]">{{ $item->menuItem?->name ?? $item->fallback_name }}</td>
                                         <td class="py-1 px-1 text-center font-medium tabular-nums">{{ number_format($item->total_qty) }}</td>
                                         <td class="py-1 px-1 text-right tabular-nums text-foreground whitespace-nowrap">{{ Rupiah::format($item->total_sales) }}</td>
                                     </tr>
@@ -222,6 +222,9 @@
                                     <td class="py-1.5 px-1.5 whitespace-nowrap">
                                         <span class="font-mono font-medium text-foreground block leading-tight">{{ $order->number }}</span>
                                         <span class="text-[10px] text-muted-foreground tabular-nums">{{ $order->created_at->format('d/m/Y H:i') }}</span>
+                                        @if ($order->isVoided())
+                                            <span class="inline-block mt-0.5 rounded border border-border px-1 py-0 text-[9px] font-bold uppercase text-foreground">VOID</span>
+                                        @endif
                                     </td>
                                     <td class="py-1.5 px-1.5 text-foreground leading-tight">
                                         {{ $order->cashier->name }}
@@ -244,8 +247,13 @@
                                                 (Diskon: -{{ Rupiah::format($order->discount_amount) }})
                                             </span>
                                         @endif
+                                        @if ($order->isVoided())
+                                            <span class="block text-[10px] text-muted-foreground">
+                                                Dibatalkan: {{ $order->void_reason }}
+                                            </span>
+                                        @endif
                                     </td>
-                                    <td class="py-1.5 px-2 text-right whitespace-nowrap tabular-nums font-semibold text-foreground">
+                                    <td class="py-1.5 px-2 text-right whitespace-nowrap tabular-nums font-semibold {{ $order->isVoided() ? 'line-through text-muted-foreground' : 'text-foreground' }}">
                                         {{ Rupiah::format($order->total) }}
                                     </td>
                                 </tr>

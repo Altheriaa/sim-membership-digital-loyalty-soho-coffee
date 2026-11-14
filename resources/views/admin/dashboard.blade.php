@@ -6,6 +6,8 @@
     $rows = array_values(array_filter([
         ['label' => 'Layar Kasir (POS)', 'detail' => 'Antarmuka kasir untuk pesanan, pembayaran, dan pencatatan poin member', 'route' => 'pos.index', 'action' => 'Buka kasir', 'allowed' => $canManage],
         ['label' => 'Laporan Penjualan', 'detail' => "Hari ini: {$todayOrders} transaksi (" . Rupiah::format($todaySales) . ')', 'route' => 'admin.reports.index', 'action' => 'Buka laporan', 'allowed' => true],
+        ['label' => 'Menu', 'detail' => "{$availableItems} tersedia dari {$totalItems} menu, di {$totalCategories} kategori", 'route' => 'admin.menu-items.index', 'action' => 'Kelola menu', 'allowed' => $canManage],
+        ['label' => 'Kategori Menu', 'detail' => "{$totalCategories} kategori aktif", 'route' => 'admin.categories.index', 'action' => 'Kelola kategori', 'allowed' => $canManage],
         ['label' => 'Member', 'detail' => "{$totalMembers} member terdaftar", 'route' => 'admin.members.index', 'action' => 'Kelola member', 'allowed' => $canManage],
         ['label' => 'Voucer', 'detail' => $openVouchers . ' voucer bisa diklaim hari ini', 'route' => 'admin.vouchers.index', 'action' => 'Kelola voucer', 'allowed' => $canManage],
         ['label' => 'Tier', 'detail' => "{$totalTiers} tingkat keanggotaan", 'route' => 'admin.tiers.index', 'action' => 'Kelola tier', 'allowed' => $canManage],
@@ -75,7 +77,7 @@
             class="flex flex-col justify-between rounded-lg border border-border bg-card p-4 sm:p-5 text-card-foreground">
             <div class="flex items-start justify-between gap-2">
                 <div>
-                    <p class="text-xs font-medium text-muted-foreground">Total Member</p>
+                    <p class="text-xs font-medium text-muted-foreground">Member baru</p>
                     <p
                         class="mt-2 font-serif text-2xl font-semibold tracking-tight tabular-nums sm:text-3xl text-card-foreground">
                         {{ $metrics['new_members']['value'] }}
@@ -123,7 +125,7 @@
             <div>
                 <div class="flex flex-wrap items-center justify-between gap-3 border-b border-border pb-3 mb-3">
                     <div>
-                        <h2 class="font-serif text-lg font-medium text-card-foreground">Tren Pendapatan</h2>
+                        <h2 class="font-serif text-lg font-medium text-card-foreground">Tren pendapatan</h2>
                         <p class="mt-0.5 text-xs text-muted-foreground">Performa omzet bulan berjalan dibanding bulan
                             lalu</p>
                     </div>
@@ -225,13 +227,15 @@
             <div>
                 <div class="flex items-center justify-between border-b border-border pb-3 mb-4">
                     <div>
-                        <h2 class="font-serif text-lg font-medium text-card-foreground">Sebaran Tier</h2>
+                        <h2 class="font-serif text-lg font-medium text-card-foreground">Sebaran tier</h2>
                         <p class="mt-0.5 text-xs text-muted-foreground">Komposisi level member Soho Coffee</p>
                     </div>
-                    <april:button-link href="{{ route('admin.tiers.index') }}" variant="outline" size="none"
-                        class="h-8 px-2.5 text-xs">
-                        Detail
-                    </april:button-link>
+                    @if ($canManage)
+                        <april:button-link href="{{ route('admin.tiers.index') }}" variant="outline" size="none"
+                            class="h-8 px-2.5 text-xs">
+                            Detail
+                        </april:button-link>
+                    @endif
                 </div>
 
                 {{-- Donut Chart with Center Cutout --}}
@@ -242,32 +246,14 @@
                         <circle cx="80" cy="80" r="54" fill="none" stroke="currentColor" stroke-opacity="0.1"
                             stroke-width="24" />
 
-                        {{-- @foreach ($tiers as $tier)
-                        <div>
-                            {{ $tier->name }}
-                        </div>
-                        @endforeach --}}
                         @if ($totalMembers > 0)
-                            {{-- Silver Arc (Base Tier) --}}
-                            @if (($tierBreakdown['Silver']['percentage'] ?? 0) > 0)
-                                <circle cx="80" cy="80" r="54" fill="none" class="stroke-slate-400 dark:stroke-stone-500"
-                                    stroke-width="24" stroke-dasharray="{{ $tierBreakdown['Silver']['dasharray'] }}"
-                                    stroke-dashoffset="{{ $tierBreakdown['Silver']['dashoffset'] }}" />
-                            @endif
-
-                            {{-- Gold Arc (Mid Tier) --}}
-                            @if (($tierBreakdown['Gold']['percentage'] ?? 0) > 0)
-                                <circle cx="80" cy="80" r="54" fill="none" class="stroke-primary" stroke-width="24"
-                                    stroke-dasharray="{{ $tierBreakdown['Gold']['dasharray'] }}"
-                                    stroke-dashoffset="{{ $tierBreakdown['Gold']['dashoffset'] }}" />
-                            @endif
-
-                            {{-- Platinum Arc (Top Tier) --}}
-                            @if (($tierBreakdown['Platinum']['percentage'] ?? 0) > 0)
-                                <circle cx="80" cy="80" r="54" fill="none" stroke="#1c325c" class="dark:stroke-sky-400"
-                                    stroke-width="24" stroke-dasharray="{{ $tierBreakdown['Platinum']['dasharray'] }}"
-                                    stroke-dashoffset="{{ $tierBreakdown['Platinum']['dashoffset'] }}" />
-                            @endif
+                            @foreach ($tierSegments as $segment)
+                                @if ($segment['percentage'] > 0)
+                                    <circle cx="80" cy="80" r="54" fill="none" class="{{ $segment['stroke'] }}"
+                                        stroke-width="24" stroke-dasharray="{{ $segment['dasharray'] }}"
+                                        stroke-dashoffset="{{ $segment['dashoffset'] }}" />
+                                @endif
+                            @endforeach
                         @endif
                     </svg>
 
@@ -284,49 +270,41 @@
 
                 {{-- Tier Legend List --}}
                 <div class="mt-4 flex flex-col divide-y divide-border/60 border-t border-border/60 text-xs sm:text-sm">
-                    <div class="flex items-center justify-between py-2">
-                        <div class="flex items-center gap-2">
-                            <span class="size-2 shrink-0 rounded-full bg-[#1c325c] dark:bg-sky-400"></span>
-                            <span class="font-medium text-card-foreground">Platinum</span>
+                    @forelse ($tierSegments as $segment)
+                        <div class="flex items-center justify-between py-2">
+                            <div class="flex items-center gap-2">
+                                <span class="size-2 shrink-0 rounded-full {{ $segment['dot'] }}"></span>
+                                <span class="font-medium text-card-foreground">{{ $segment['name'] }}</span>
+                            </div>
+                            <span
+                                class="font-medium tabular-nums text-card-foreground">{{ $segment['percentage'] }}%</span>
                         </div>
-                        <span
-                            class="font-medium tabular-nums text-card-foreground">{{ $tierBreakdown['Platinum']['percentage'] ?? 0 }}%</span>
-                    </div>
-                    <div class="flex items-center justify-between py-2">
-                        <div class="flex items-center gap-2">
-                            <span class="size-2 shrink-0 rounded-full bg-primary"></span>
-                            <span class="font-medium text-card-foreground">Gold</span>
-                        </div>
-                        <span
-                            class="font-medium tabular-nums text-card-foreground">{{ $tierBreakdown['Gold']['percentage'] ?? 0 }}%</span>
-                    </div>
-                    <div class="flex items-center justify-between py-2">
-                        <div class="flex items-center gap-2">
-                            <span class="size-2 shrink-0 rounded-full bg-slate-400 dark:bg-stone-500"></span>
-                            <span class="font-medium text-card-foreground">Silver</span>
-                        </div>
-                        <span
-                            class="font-medium tabular-nums text-card-foreground">{{ $tierBreakdown['Silver']['percentage'] ?? 0 }}%</span>
-                    </div>
+                    @empty
+                        <p class="py-3 text-center text-xs text-muted-foreground">Belum ada tier keanggotaan.</p>
+                    @endforelse
                 </div>
             </div>
         </div>
     </section>
 
     {{-- Menu Availability Overview --}}
-    {{-- <section aria-labelledby="ready-heading" class="flex flex-col gap-1 border-t border-border pt-6 sm:pt-8">
+    <section aria-labelledby="ready-heading" class="flex flex-col gap-1 border-t border-border pt-6 sm:pt-8">
         <h2 id="ready-heading" class="text-sm text-muted-foreground">Menu yang bisa dijual sekarang</h2>
-        <p class="font-serif text-6xl font-medium tabular-nums tracking-tight sm:text-7xl">{{ $availableItems }}</p>
+        <div class="flex flex-wrap items-baseline gap-3">
+            <p class="font-serif text-5xl font-medium tabular-nums tracking-tight sm:text-6xl">{{ $availableItems }}</p>
+            <p class="text-sm text-muted-foreground">
+                {{ $availableItems }} tersedia dari {{ $totalItems }} menu, di {{ $totalCategories }} kategori
+            </p>
+        </div>
         @if ($availableItems === 0)
-        <p class="text-sm text-muted-foreground">
-            Belum ada menu yang tersedia.
-            @if ($canManage)
-            <a href="{{ route('admin.menu-items.create') }}" class="text-primary underline underline-offset-4">Tambah
-                menu pertama</a>.
-            @endif
-        </p>
+            <p class="text-sm text-muted-foreground">
+                Belum ada menu yang tersedia.
+                @if ($canManage)
+                    <a href="{{ route('admin.menu-items.create') }}" class="text-primary underline underline-offset-4">Tambah menu pertama</a>.
+                @endif
+            </p>
         @endif
-    </section> --}}
+    </section>
 
     {{-- Fitur & Data Master --}}
     <section aria-labelledby="setup-heading" class="rounded-lg border border-border bg-card text-card-foreground">

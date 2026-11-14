@@ -25,6 +25,7 @@ class MemberResource extends JsonResource
             'name' => $this->name,
             'phone' => $this->displayPhone(),
             'points_balance' => $this->points_balance,
+            'has_pin' => $this->hasPin(),
             'tier' => $tier?->name,
             'multiplier_hundredths' => $tier?->multiplierHundredths() ?? 100,
             'multiplier_label' => $tier?->multiplierLabel() ?? '1',

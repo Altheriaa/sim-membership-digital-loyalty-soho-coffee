@@ -1,4 +1,9 @@
+@use('App\Role')
 @use('App\Support\Rupiah')
+
+@php
+    $canVoid = auth()->user()->hasRole(Role::Admin);
+@endphp
 
 <x-layouts.admin title="Laporan Penjualan & Pembukuan">
     <x-slot:actions>
@@ -147,7 +152,7 @@
                             @foreach ($bestSellers as $index => $item)
                                 <tr class="hover:bg-accent/40">
                                     <td class="px-4 py-3 font-mono font-medium text-muted-foreground">{{ $index + 1 }}</td>
-                                    <td class="px-4 py-3 font-medium text-foreground">{{ $item->menuItem->name }}</td>
+                                    <td class="px-4 py-3 font-medium text-foreground">{{ $item->menuItem?->name ?? $item->fallback_name }}</td>
                                     <td class="px-4 py-3 text-center tabular-nums font-semibold text-primary">{{ number_format($item->total_qty) }}</td>
                                     <td class="px-4 py-3 text-right tabular-nums font-medium text-foreground">{{ Rupiah::format($item->total_sales) }}</td>
                                 </tr>
@@ -194,11 +199,40 @@
     </div>
 
     <!-- Riwayat Transaksi Penjualan -->
-    <section aria-labelledby="transactions-heading" class="overflow-hidden rounded-lg border border-border bg-card text-card-foreground">
-        <div class="border-b border-border p-4 flex items-center justify-between">
+    <section
+        aria-labelledby="transactions-heading"
+        x-data="{
+            voidModal: null,
+            voidReason: '',
+            openVoid(id, number, totalFormatted, url) {
+                this.voidModal = { id, number, totalFormatted, url };
+                this.voidReason = '';
+                this.$nextTick(() => this.$refs.voidReasonInput?.focus());
+            }
+        }"
+        x-on:keydown.escape.window="voidModal = null"
+        class="overflow-hidden rounded-lg border border-border bg-card text-card-foreground"
+    >
+        <div class="border-b border-border p-4 flex flex-wrap items-center justify-between gap-2">
             <h3 id="transactions-heading" class="font-serif text-base font-medium">Transaksi Penjualan</h3>
-            <span class="text-xs text-muted-foreground tabular-nums">{{ number_format($totalOrders) }} transaksi</span>
+            <span class="text-xs text-muted-foreground tabular-nums">
+                {{ number_format($totalOrders) }} sah
+                @if (($totalVoidedOrders ?? 0) > 0)
+                    · {{ number_format($totalVoidedOrders) }} dibatalkan
+                @endif
+            </span>
         </div>
+
+        @error('void_reason')
+            <div role="alert" class="m-4 mb-0 rounded-md border border-red-300 bg-red-100 px-3 py-2 text-xs font-medium text-red-900 dark:border-red-800 dark:bg-red-950/70 dark:text-red-200">
+                {{ $message }}
+            </div>
+        @enderror
+        @error('void')
+            <div role="alert" class="m-4 mb-0 rounded-md border border-red-300 bg-red-100 px-3 py-2 text-xs font-medium text-red-900 dark:border-red-800 dark:bg-red-950/70 dark:text-red-200">
+                {{ $message }}
+            </div>
+        @enderror
 
         @if ($orders->isEmpty())
             <div class="p-8 text-center text-xs text-muted-foreground">
@@ -220,7 +254,7 @@
                     </thead>
                     <tbody class="divide-y divide-border">
                         @foreach ($orders as $order)
-                            <tr class="hover:bg-accent/30 transition-colors">
+                            <tr class="hover:bg-accent/30 transition-colors {{ $order->isVoided() ? 'bg-muted/30' : '' }}">
                                 <td class="px-4 py-3 whitespace-nowrap">
                                     <a
                                         href="{{ route('pos.orders.show', ['order' => $order, 'from' => 'reports']) }}"
@@ -233,6 +267,11 @@
                                     <span class="block text-[11px] text-muted-foreground tabular-nums">
                                         {{ $order->created_at->translatedFormat('d M Y, H:i') }}
                                     </span>
+                                    @if ($order->isVoided())
+                                        <span class="mt-1 inline-flex items-center rounded border border-red-300 bg-red-100 px-1.5 py-0.5 text-[10px] font-bold text-red-900 dark:border-red-800 dark:bg-red-950/70 dark:text-red-200">
+                                            Dibatalkan
+                                        </span>
+                                    @endif
                                 </td>
                                 <td class="px-4 py-3 whitespace-nowrap text-foreground">
                                     {{ $order->cashier->name }}
@@ -250,23 +289,41 @@
                                 <td class="px-4 py-3 whitespace-nowrap text-muted-foreground">
                                     {{ $order->payment_method->label() }}
                                 </td>
-                                <td class="px-4 py-3 text-muted-foreground max-w-xs truncate" title="{{ $order->items->map(fn ($i) => "{$i->quantity}x {$i->name}")->join(', ') }}">
-                                    {{ $order->items->take(2)->map(fn ($i) => "{$i->quantity}x {$i->name}")->join(', ') }}
-                                    @if ($order->items->count() > 2)
-                                        <span class="text-muted-foreground/60">(+{{ $order->items->count() - 2 }} lainnya)</span>
+                                <td class="px-4 py-3 text-muted-foreground max-w-xs" title="{{ $order->items->map(fn ($i) => "{$i->quantity}x {$i->name}")->join(', ') }}">
+                                    <div class="truncate">
+                                        {{ $order->items->take(2)->map(fn ($i) => "{$i->quantity}x {$i->name}")->join(', ') }}
+                                        @if ($order->items->count() > 2)
+                                            <span class="text-muted-foreground/60">(+{{ $order->items->count() - 2 }} lainnya)</span>
+                                        @endif
+                                    </div>
+                                    @if ($order->isVoided() && $order->void_reason)
+                                        <span class="mt-0.5 block truncate text-[11px] text-red-900 dark:text-red-200">
+                                            Alasan: {{ $order->void_reason }}
+                                        </span>
                                     @endif
                                 </td>
-                                <td class="px-4 py-3 text-right tabular-nums font-semibold text-foreground whitespace-nowrap">
+                                <td class="px-4 py-3 text-right tabular-nums font-semibold whitespace-nowrap {{ $order->isVoided() ? 'line-through text-muted-foreground' : 'text-foreground' }}">
                                     {{ Rupiah::format($order->total) }}
                                 </td>
                                 <td class="no-print px-4 py-3 text-right whitespace-nowrap">
-                                    <a
-                                        href="{{ route('pos.orders.show', ['order' => $order, 'from' => 'reports']) }}"
-                                        target="_blank"
-                                        class="inline-flex h-8 items-center justify-center rounded-md border border-input bg-background px-3 text-xs font-medium text-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
-                                    >
-                                        Cetak struk
-                                    </a>
+                                    <div class="inline-flex items-center justify-end gap-1.5">
+                                        <a
+                                            href="{{ route('pos.orders.show', ['order' => $order, 'from' => 'reports']) }}"
+                                            target="_blank"
+                                            class="inline-flex min-h-9 items-center justify-center rounded-md border border-input bg-background px-3 text-xs font-medium text-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
+                                        >
+                                            Cetak struk
+                                        </a>
+                                        @if ($canVoid && ! $order->isVoided())
+                                            <button
+                                                type="button"
+                                                x-on:click="openVoid({{ $order->id }}, @js($order->number), @js(Rupiah::format($order->total)), @js(route('admin.orders.void', $order)))"
+                                                class="inline-flex min-h-9 items-center justify-center rounded-md border border-red-300 bg-red-100 px-3 text-xs font-medium text-red-900 hover:bg-red-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring dark:border-red-800 dark:bg-red-950/70 dark:text-red-200 dark:hover:bg-red-900/70 transition-colors"
+                                            >
+                                                Void
+                                            </button>
+                                        @endif
+                                    </div>
                                 </td>
                             </tr>
                         @endforeach
@@ -275,6 +332,66 @@
             </div>
 
             <x-pagination :paginator="$orders" />
+        @endif
+
+        @if ($canVoid)
+            <div
+                x-cloak
+                x-show="voidModal !== null"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="void-dialog-title"
+                class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+                x-on:click.self="voidModal = null"
+            >
+                <div class="w-full max-w-md rounded-lg border border-border bg-card p-5 text-card-foreground shadow-lg">
+                    <h4 id="void-dialog-title" class="font-serif text-lg font-semibold text-foreground">
+                        Batalkan Transaksi (Void)
+                    </h4>
+                    <p class="mt-1 text-xs leading-relaxed text-muted-foreground">
+                        Membatalkan struk <span class="font-mono font-semibold text-foreground" x-text="voidModal?.number"></span>
+                        (<span class="font-mono font-semibold text-foreground" x-text="voidModal?.totalFormatted"></span>)
+                        akan mengeluarkan nominal dari laporan omzet, mengembalikan voucer atau poin yang dipakai, serta menarik kembali poin yang didapat.
+                    </p>
+
+                    <form method="POST" x-bind:action="voidModal?.url" class="mt-4 flex flex-col gap-3">
+                        @csrf
+                        <div class="flex flex-col gap-1.5">
+                            <label for="void_reason" class="text-xs font-medium text-foreground">
+                                Alasan Pembatalan
+                            </label>
+                            <input
+                                id="void_reason"
+                                x-ref="voidReasonInput"
+                                type="text"
+                                name="void_reason"
+                                x-model="voidReason"
+                                required
+                                minlength="3"
+                                maxlength="200"
+                                placeholder="Contoh: Salah input item pesanan"
+                                class="h-11 w-full rounded-md border border-input bg-background px-3 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:h-10 sm:text-xs"
+                            >
+                        </div>
+
+                        <div class="mt-2 flex flex-wrap justify-end gap-2">
+                            <button
+                                type="button"
+                                x-on:click="voidModal = null"
+                                class="inline-flex h-11 items-center justify-center rounded-md border border-input bg-background px-4 text-xs font-medium text-foreground hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:h-10"
+                            >
+                                Batal
+                            </button>
+                            <button
+                                type="submit"
+                                class="inline-flex h-11 items-center justify-center rounded-md bg-destructive px-4 text-xs font-semibold text-destructive-foreground hover:bg-destructive/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:h-10"
+                            >
+                                Ya, Batalkan Transaksi
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
         @endif
     </section>
 

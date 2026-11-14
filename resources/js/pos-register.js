@@ -1,4 +1,15 @@
-import { cashSuggestions, formatRupiah, isValidPhone, normalizePhone, pointsFor, subtotalOf, taxFor, voucherDiscount } from './pos-math';
+import {
+    cashSuggestions,
+    formatRupiah,
+    isValidPhone,
+    maxRedeemablePoints,
+    normalizePhone,
+    pointDiscount,
+    pointsFor,
+    subtotalOf,
+    taxFor,
+    voucherDiscount,
+} from './pos-math';
 
 const MAX_QUANTITY = 99;
 
@@ -73,7 +84,7 @@ export default function posRegister(configId) {
         configLoaded: config !== null,
         items: config?.items ?? [],
         categories: config?.categories ?? [],
-        settings: config?.settings ?? { taxBasisPoints: 0, spendPerPoint: 1 },
+        settings: config?.settings ?? { taxBasisPoints: 0, spendPerPoint: 1, pointValue: 0 },
         routes: config?.routes ?? {},
         csrfToken: config?.csrfToken ?? '',
 
@@ -101,6 +112,9 @@ export default function posRegister(configId) {
         voucher: null,
         voucherBusy: false,
         voucherError: '',
+        pointsToRedeem: 0,
+        pointPin: '',
+        pointError: '',
 
         rupiah(amount) {
             return formatRupiah(amount);
@@ -132,16 +146,67 @@ export default function posRegister(configId) {
             return subtotalOf(this.cartLines);
         },
 
-        get tax() {
-            return taxFor(this.subtotal, this.settings.taxBasisPoints);
+        get voucherMissingItemMessage() {
+            if (!this.voucher || this.voucher.type !== 'free_item') {
+                return '';
+            }
+
+            const hasItem = this.cartLines.some((line) => Number(line.id) === Number(this.voucher.menu_item_id));
+            if (hasItem) {
+                return '';
+            }
+
+            return `Tambahkan menu ${this.voucher.menu_item_name ?? 'hadiah'} ke keranjang untuk memakai voucer ini.`;
         },
 
         get voucherAmount() {
-            return voucherDiscount(this.voucher, this.subtotal);
+            return voucherDiscount(this.voucher, this.subtotal, this.cartLines);
+        },
+
+        get remainingAfterVoucher() {
+            return Math.max(0, this.subtotal - this.voucherAmount);
+        },
+
+        get maxRedeemablePoints() {
+            if (!this.member || !this.member.has_pin) {
+                return 0;
+            }
+
+            return maxRedeemablePoints(
+                this.member.points_balance,
+                this.settings.pointValue ?? 0,
+                this.remainingAfterVoucher,
+            );
+        },
+
+        get effectivePointsToRedeem() {
+            const requested = Math.max(0, Number.parseInt(this.pointsToRedeem, 10) || 0);
+
+            return Math.min(requested, this.maxRedeemablePoints);
+        },
+
+        get pointAmount() {
+            return pointDiscount(
+                this.effectivePointsToRedeem,
+                this.settings.pointValue ?? 0,
+                this.remainingAfterVoucher,
+            );
+        },
+
+        get totalDiscount() {
+            return this.voucherAmount + this.pointAmount;
+        },
+
+        get netSubtotal() {
+            return Math.max(0, this.subtotal - this.totalDiscount);
+        },
+
+        get tax() {
+            return taxFor(this.netSubtotal, this.settings.taxBasisPoints);
         },
 
         get total() {
-            return this.subtotal - this.voucherAmount + this.tax;
+            return this.netSubtotal + this.tax;
         },
 
         get pointsEstimate() {
@@ -149,7 +214,7 @@ export default function posRegister(configId) {
                 return 0;
             }
 
-            return pointsFor(this.subtotal, this.settings.spendPerPoint, this.member.multiplier_hundredths);
+            return pointsFor(this.netSubtotal, this.settings.spendPerPoint, this.member.multiplier_hundredths);
         },
 
         quantityOf(id) {
@@ -284,6 +349,8 @@ export default function posRegister(configId) {
             this.member = null;
             this.memberStatus = 'idle';
             this.memberError = '';
+            this.clearVoucher();
+            this.clearPoints();
             this.registerError = '';
             this.registerName = '';
             this.phone = '';
@@ -329,6 +396,15 @@ export default function posRegister(configId) {
                 return;
             }
 
+            if (this.voucherInfo?.type === 'free_item') {
+                const hasItem = this.cartLines.some((line) => Number(line.id) === Number(this.voucherInfo.menu_item_id));
+                if (!hasItem) {
+                    this.voucherError = `Tambahkan menu ${this.voucherInfo.menu_item_name ?? 'hadiah'} ke keranjang sebelum memakai voucer ini.`;
+
+                    return;
+                }
+            }
+
             this.voucher = { ...this.voucherInfo, pin };
             this.voucherInfo = null;
             this.voucherPin = '';
@@ -350,6 +426,26 @@ export default function posRegister(configId) {
             }
         },
 
+        clearPoints() {
+            this.pointsToRedeem = 0;
+            this.pointPin = '';
+            this.pointError = '';
+        },
+
+        redeemAllPoints() {
+            this.pointsToRedeem = this.maxRedeemablePoints;
+            this.pointError = '';
+        },
+
+        effectiveMemberPin() {
+            if (this.voucher?.pin) {
+                return this.voucher.pin;
+            }
+
+            const cleaned = String(this.pointPin ?? '').replace(/\D+/g, '');
+            return cleaned.length === 6 ? cleaned : null;
+        },
+
         get cashValue() {
             const digits = String(this.cashReceived).replace(/\D+/g, '');
 
@@ -365,7 +461,7 @@ export default function posRegister(configId) {
         },
 
         get canPay() {
-            if (this.cart.length === 0 || this.paying) {
+            if (this.cart.length === 0 || this.paying || this.voucherMissingItemMessage) {
                 return false;
             }
 
@@ -377,8 +473,22 @@ export default function posRegister(configId) {
                 return;
             }
 
+            if (this.voucherMissingItemMessage) {
+                this.payErrors = [this.voucherMissingItemMessage];
+
+                return;
+            }
+
+            if (this.effectivePointsToRedeem > 0 && !this.effectiveMemberPin()) {
+                this.pointError = 'Masukkan 6-digit PIN Keamanan member untuk menukarkan poin.';
+                this.payErrors = [this.pointError];
+
+                return;
+            }
+
             this.paying = true;
             this.payErrors = [];
+            this.pointError = '';
 
             try {
                 const { receipt_url: receiptUrl } = await send(this.routes.storeOrder, {
@@ -387,7 +497,8 @@ export default function posRegister(configId) {
                         items: this.cart.map(({ id, quantity }) => ({ id, quantity })),
                         member_id: this.member?.id ?? null,
                         voucher_id: this.voucher?.id ?? null,
-                        voucher_pin: this.voucher?.pin ?? null,
+                        points_to_redeem: this.effectivePointsToRedeem,
+                        voucher_pin: this.effectiveMemberPin(),
                         payment_method: this.paymentMethod,
                         cash_received: this.paymentMethod === 'cash' ? this.cashValue : null,
                     },
@@ -398,8 +509,12 @@ export default function posRegister(configId) {
             } catch (error) {
                 const messages = Object.values(error.errors ?? {}).flat();
 
-                if ('voucher_id' in (error.errors ?? {}) || 'voucher_pin' in (error.errors ?? {})) {
+                if (this.voucher && ('voucher_id' in (error.errors ?? {}) || 'voucher_pin' in (error.errors ?? {}))) {
                     this.clearVoucher();
+                }
+
+                if ('points_to_redeem' in (error.errors ?? {}) || (!this.voucher && 'voucher_pin' in (error.errors ?? {}))) {
+                    this.pointError = error.errors?.points_to_redeem?.[0] ?? error.errors?.voucher_pin?.[0] ?? '';
                 }
 
                 this.payErrors = messages.length > 0 ? [...new Set(messages)] : [error.message];

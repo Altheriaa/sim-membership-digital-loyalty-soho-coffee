@@ -22,11 +22,11 @@ class DashboardController extends Controller
         $now = Carbon::now();
         $startOfMonth = $now->copy()->startOfMonth();
         $endOfMonth = $now->copy()->endOfMonth();
-        $startOfLastMonth = $now->copy()->subMonth()->startOfMonth();
-        $endOfLastMonth = $now->copy()->subMonth()->endOfMonth();
+        $startOfLastMonth = $now->copy()->subMonthNoOverflow()->startOfMonth();
+        $endOfLastMonth = $now->copy()->subMonthNoOverflow()->endOfMonth();
 
-        $thisMonthOrders = Order::query()->whereBetween('created_at', [$startOfMonth, $endOfMonth]);
-        $lastMonthOrders = Order::query()->whereBetween('created_at', [$startOfLastMonth, $endOfLastMonth]);
+        $thisMonthOrders = Order::query()->notVoided()->whereBetween('created_at', [$startOfMonth, $endOfMonth]);
+        $lastMonthOrders = Order::query()->notVoided()->whereBetween('created_at', [$startOfLastMonth, $endOfLastMonth]);
 
         $monthlyRevenue = (int) (clone $thisMonthOrders)->sum('total');
         $totalOrdersCount = (clone $thisMonthOrders)->count();
@@ -47,8 +47,8 @@ class DashboardController extends Controller
             default => 'Rp 0',
         };
 
-        $todayOrdersCount = Order::query()->whereDate('created_at', today())->count();
-        $todaySalesAmount = (int) Order::query()->whereDate('created_at', today())->sum('total');
+        $todayOrdersCount = Order::query()->notVoided()->whereDate('created_at', today())->count();
+        $todaySalesAmount = (int) Order::query()->notVoided()->whereDate('created_at', today())->sum('total');
 
         $metrics = [
             'revenue' => [
@@ -76,42 +76,89 @@ class DashboardController extends Controller
 
         $tiers = Tier::query()->orderBy('min_spend')->get();
         $members = Member::query()->select('id', 'lifetime_spend')->get();
-        $tierCounts = ['Platinum' => 0, 'Gold' => 0, 'Silver' => 0];
+        $tierCounts = [];
+
+        foreach ($tiers as $tier) {
+            $tierCounts[$tier->id] = 0;
+        }
+
+        $unassignedTierCount = 0;
+
         foreach ($members as $member) {
             $assignedTier = Tier::forSpendFrom($tiers, $member->lifetime_spend);
-            $tierName = $assignedTier ? $assignedTier->name : 'Silver';
-            $tierCounts[$tierName] = ($tierCounts[$tierName] ?? 0) + 1;
+
+            if ($assignedTier !== null) {
+                $tierCounts[$assignedTier->id] = ($tierCounts[$assignedTier->id] ?? 0) + 1;
+            } else {
+                $unassignedTierCount++;
+            }
         }
 
         $circumference = 339.292;
         $accumulatedOffset = 0.0;
         $tierBreakdown = [];
+        $tierSegments = [];
+        $palette = [
+            ['stroke' => 'stroke-[#1c325c] dark:stroke-sky-400', 'dot' => 'bg-[#1c325c] dark:bg-sky-400'],
+            ['stroke' => 'stroke-primary', 'dot' => 'bg-primary'],
+            ['stroke' => 'stroke-slate-400 dark:stroke-stone-500', 'dot' => 'bg-slate-400 dark:bg-stone-500'],
+            ['stroke' => 'stroke-emerald-600 dark:stroke-emerald-400', 'dot' => 'bg-emerald-600 dark:bg-emerald-400'],
+            ['stroke' => 'stroke-amber-600 dark:stroke-amber-400', 'dot' => 'bg-amber-600 dark:bg-amber-400'],
+        ];
 
-        foreach (['Platinum', 'Gold', 'Silver'] as $tierName) {
-            $count = $tierCounts[$tierName] ?? 0;
+        $orderedTiers = $tiers->sortByDesc('min_spend')->values();
+
+        foreach ($orderedTiers as $index => $tier) {
+            $count = $tierCounts[$tier->id] ?? 0;
             $pct = $totalMembersCount > 0 ? (int) round(($count / $totalMembersCount) * 100) : 0;
             $arcLength = round(($pct / 100) * $circumference, 2);
-            $tierBreakdown[$tierName] = [
+            $colors = $palette[$index % count($palette)];
+
+            $segment = [
+                'name' => $tier->name,
                 'count' => $count,
                 'percentage' => $pct,
                 'dasharray' => "{$arcLength} ".round($circumference - $arcLength, 2),
                 'dashoffset' => -$accumulatedOffset,
+                'stroke' => $colors['stroke'],
+                'dot' => $colors['dot'],
             ];
+
+            $tierBreakdown[$tier->name] = $segment;
+            $tierSegments[] = $segment;
             $accumulatedOffset += $arcLength;
+        }
+
+        if ($unassignedTierCount > 0) {
+            $pct = $totalMembersCount > 0 ? (int) round(($unassignedTierCount / $totalMembersCount) * 100) : 0;
+            $arcLength = round(($pct / 100) * $circumference, 2);
+            $colors = $palette[count($orderedTiers) % count($palette)];
+
+            $tierSegments[] = [
+                'name' => 'Lainnya',
+                'count' => $unassignedTierCount,
+                'percentage' => $pct,
+                'dasharray' => "{$arcLength} ".round($circumference - $arcLength, 2),
+                'dashoffset' => -$accumulatedOffset,
+                'stroke' => $colors['stroke'],
+                'dot' => $colors['dot'],
+            ];
         }
 
         $displayTotalMembers = number_format($totalMembersCount, 0, ',', '.');
 
-        // Prepare Dynamic Revenue Trend Chart Data from real orders
+        // Prepare Dynamic Revenue Trend Chart Data from real non-voided orders
         $daysInMonth = $now->daysInMonth;
         $currentDay = $now->day;
         $monthName = $now->translatedFormat('M');
 
         $thisMonthOrdersList = Order::query()
+            ->notVoided()
             ->whereBetween('created_at', [$startOfMonth, $endOfMonth])
             ->get(['total', 'created_at']);
 
         $lastMonthOrdersList = Order::query()
+            ->notVoided()
             ->whereBetween('created_at', [$startOfLastMonth, $endOfLastMonth])
             ->get(['total', 'created_at']);
 
@@ -123,10 +170,11 @@ class DashboardController extends Controller
             }
         }
 
-        $dailyRevenueLastMonth = array_fill(1, $daysInMonth, 0);
+        $daysInLastMonth = $startOfLastMonth->daysInMonth;
+        $dailyRevenueLastMonth = array_fill(1, $daysInLastMonth, 0);
         foreach ($lastMonthOrdersList as $order) {
             $day = (int) $order->created_at->format('j');
-            if ($day <= $daysInMonth) {
+            if ($day <= $daysInLastMonth) {
                 $dailyRevenueLastMonth[$day] += (int) $order->total;
             }
         }
@@ -164,9 +212,10 @@ class DashboardController extends Controller
         }
 
         $pointsLastMonth = [];
-        for ($d = 1; $d <= $daysInMonth; $d++) {
+        $lastMonthDivisor = max(1, $daysInLastMonth - 1);
+        for ($d = 1; $d <= $daysInLastMonth; $d++) {
             $amount = $dailyRevenueLastMonth[$d] ?? 0;
-            $x = round(50 + (($d - 1) / ($daysInMonth - 1)) * 570, 1);
+            $x = round(50 + (($d - 1) / $lastMonthDivisor) * 570, 1);
             $y = round(210 - (($amount / $maxCeiling) * 180), 1);
             $y = max(30, min(210, $y));
             $pointsLastMonth[] = [
@@ -203,17 +252,19 @@ class DashboardController extends Controller
         ];
 
         return view('admin.dashboard', [
+            'availableItems' => MenuItem::query()->where('is_available', true)->count(),
             'totalItems' => MenuItem::query()->count(),
             'totalCategories' => MenuCategory::query()->count(),
             'openVouchers' => Voucher::query()->openForClaims()->count(),
             'totalTiers' => Tier::query()->count(),
             'totalMembers' => $totalMembersCount,
-            'todayOrders' => Order::query()->whereDate('created_at', today())->count(),
-            'todaySales' => (int) Order::query()->whereDate('created_at', today())->sum('total'),
+            'todayOrders' => Order::query()->notVoided()->whereDate('created_at', today())->count(),
+            'todaySales' => (int) Order::query()->notVoided()->whereDate('created_at', today())->sum('total'),
             'activeStaff' => User::query()->where('is_active', true)->count(),
             'settings' => LoyaltySetting::current(),
             'metrics' => $metrics,
             'tierBreakdown' => $tierBreakdown,
+            'tierSegments' => $tierSegments,
             'displayTotalMembers' => $displayTotalMembers,
             'chartData' => $chartData,
         ]);

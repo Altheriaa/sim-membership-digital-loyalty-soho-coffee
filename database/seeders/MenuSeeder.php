@@ -10,15 +10,40 @@ use Illuminate\Database\Seeder;
 
 class MenuSeeder extends Seeder
 {
-    /**
-     * Placeholder menu and vouchers for development. The cafe replaces them with its real offer.
-     */
     public function run(): void
     {
         $menu = [
             'Kopi' => [['Espresso', 18000], ['Americano', 20000], ['Kopi Susu', 25000]],
             'Non-Kopi' => [['Teh Lemon', 18000], ['Cokelat', 24000]],
-            'Makanan' => [['Roti Bakar', 22000]],
+            'Makanan' => [
+                ['Ayam Geprek', 20000],
+                ['Ayam Penyet', 20000],
+                ['Chicken Cordon Blue', 65000],
+                ['Chicken Crispy', 40000],
+                ['Chicken Steak', 40000],
+                ['Nasi Ayam Rica-Rica', 30000],
+                ['Nasi Ayam Sambal Matah', 30000],
+                ['Nasi Dori Rica-Rica', 30000],
+                ['Nasi Dori Sambal Matah', 30000],
+                ['Nasi Goreng Ayam', 30000],
+                ['Nasi Goreng Belacan', 30000],
+                ['Nasi Goreng Daun Jeruk', 28000],
+                ['Nasi Goreng Daun Jeruk Ayam Sambal Kerok', 30000],
+                ['Nasi Goreng Kampoeng Ayam', 30000],
+                ['Nasi Goreng Kampoeng Telur', 20000],
+                ['Nasi Goreng Seafood', 30000],
+                ['Nasi Goreng Telur', 20000],
+                ['Nasi Goreng Tomyam', 30000],
+                ['Nasi Goreng Xo', 30000],
+                ['Nasi Kecombrang Ayam Cabe Hijau', 30000],
+                ['Nasi Liwet', 30000],
+                ['Pasta Agilo Olio', 30000],
+                ['Pasta Bolognese', 30000],
+                ['Pasta Carbonara', 30000],
+                ['Roti Bakar', 22000],
+                ['Spaghetti Brulee', 30000],
+                ['Thai Basil Chicken Rice', 30000],
+            ],
         ];
 
         $order = 0;
