@@ -42,7 +42,7 @@ class HomeController extends Controller
         $categories = MenuCategory::query()
             ->ordered()
             ->whereHas('items', fn (Builder $query) => $query->where('is_available', true))
-            ->with(['items' => fn ($query) => $query->where('is_available', true)->orderBy('name')])
+            ->with(['items' => fn ($query) => $query->where('is_available', true)->orderBy('name')->limit(3)])
             ->get();
 
         return [

@@ -409,7 +409,7 @@
                     <p class="rounded-lg border border-dashed border-input bg-card p-6 leading-relaxed text-muted-foreground">
                         Daftar menu belum diisi di sistem kasir. Begitu admin menambahkan menu, daftar harga akan tampil di sini.
                     </p>
-                @else
+                @else   
                     <div class="flex flex-col justify-between gap-4 rounded-lg border border-border bg-card p-4 sm:flex-row sm:items-center">
                         <div role="group" aria-label="Filter kategori menu" class="flex flex-wrap gap-2">
                             <button type="button" x-on:click="selectedCategory = 'all'"
