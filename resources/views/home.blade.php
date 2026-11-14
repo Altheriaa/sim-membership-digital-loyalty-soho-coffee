@@ -150,7 +150,7 @@
             <div class="grid gap-10 lg:grid-cols-12 lg:items-center lg:gap-12">
                 <div class="flex flex-col gap-6 lg:col-span-5">
                     <h1 class="text-[clamp(2.15rem,5vw,3.75rem)] leading-[1.06] font-extrabold tracking-tight text-balance">
-                        Ngopi dulu di Soho.
+                        Good Foods, Good Mood.
                     </h1>
                     <p class="text-base leading-relaxed text-muted-foreground sm:text-lg">
                         Ada Kopi Susu, Americano, Espresso, sampai Teh Lemon dan Roti Bakar buat teman duduk di kedai. Cek daftar harga terbaru di bawah sebelum Anda mampir.
